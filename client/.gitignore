@@ -1,0 +1,23 @@
+node_modules
+dist
+.env
+
+
+# Environments
+.env
+.env.*
+
+# Python
+/server/venv/
+/server/env/
+/server/.venv/
+__pycache__/
+*.pyc
+
+# Node
+/client/node_modules/
+/client/dist/
+
+# IDE
+.vscode/
+.idea/
