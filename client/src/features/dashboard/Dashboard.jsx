@@ -4,6 +4,7 @@ import { useUserStore } from '../../store/userStore'; // 1. 우리가 만든 스
 import Header from '../../components/layout/Header';
 import Button from '../../components/common/Button';
 import Logo from '../../components/common/Logo'; // (환영 의미로 로고 추가!)
+import userIcon from '../../assets/user.svg';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -35,15 +36,12 @@ const Dashboard = () => {
   // 6. 실제 화면 렌더링
   return (
     <div className="flex flex-col min-h-full">
-      {/* 7. Header의 rightAccessory에 로그아웃 버튼 넣기 */}
+      {/* 7. Header의 rightAccessory에 마이페이지 이동 버튼 넣기 */}
       <Header
         title="WON CARE" // 앱 로고가 있으니 제목은 심플하게
         rightAccessory={
-          <button
-            onClick={handleLogout}
-            className="text-sm font-semibold text-gray-500 hover:text-gray-800"
-          >
-            로그아웃
+          <button onClick={() => navigate('/mypage')}>
+            <img src={userIcon} alt="My Page" className="w-6 h-6" />
           </button>
         }
       />

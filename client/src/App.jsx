@@ -1,37 +1,22 @@
-// src/App.jsx
-
-
-
 import React from 'react';
-
-import AppRoutes from './routes'; // 1. 방금 만든 '표지판' 가져오기
-
-import DeviceFrame from './components/layout/DeviceFrame'; // 2. '폰 프레임' 가져오기
-
-
+import AppRoutes from './routes';
 
 function App() {
-
   return (
-
-    // 3. (PC 화면) 회색 배경에서 폰 프레임을 가운데 정렬
-
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-
-      <DeviceFrame>
-
-        {/* 4. '폰 프레임' 안에서 실제 페이지(AppRoutes)가 보이도록 함 */}
-
+    // Use the full screen, with a light gray background
+    <div className="min-h-screen bg-gray-100">
+      {/* 
+        On wider screens, constrain the content to a max-width of a typical phone, 
+        center it, and give it a white background and shadow to resemble an app.
+        On smaller screens, it will fill the width.
+        'mx-auto' handles the centering.
+        'h-full' or 'min-h-screen' ensures it takes up the full height.
+      */}
+      <div className="max-w-md mx-auto min-h-screen bg-white shadow-lg">
         <AppRoutes />
-
-      </DeviceFrame>
-
+      </div>
     </div>
-
   );
-
 }
-
-
 
 export default App; 

@@ -1,15 +1,11 @@
-// src/features/auth/SignupEmail.jsx (Simplified without email verification)
-
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Header from '../../components/layout/Header.jsx';
+import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input.jsx';
 import Checkbox from '../../components/common/Checkbox.jsx';
 import Button from '../../components/common/Button.jsx';
 import EyeOpenIcon from '../../assets/eye-open.svg';
 import EyeClosedIcon from '../../assets/eye-closed.svg';
-
-// [수정] signupUser 함수만 import 합니다.
 import { signupUser } from '../../api/authApi';
 
 const SignupEmail = () => {
@@ -17,7 +13,6 @@ const SignupEmail = () => {
   const location = useLocation();
   const stepOneData = location.state?.stepOneData || null;
 
-  // [수정] 폼 상태 (인증 관련 상태 모두 제거)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -26,14 +21,12 @@ const SignupEmail = () => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
-  // 비밀번호 보기/일치 여부 로직
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
   const isPasswordMatch = password.length > 0 && password === passwordConfirm;
   const isPasswordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm;
   const validationError = isPasswordMismatch ? '비밀번호가 일치하지 않습니다.' : null;
 
-  // [수정] 최종 폼 제출 핸들러
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -42,7 +35,6 @@ const SignupEmail = () => {
       return;
     }
     
-    // [수정] 유효성 검사 (인증 관련 로직 제거)
     if (!email) return setSubmitError('이메일을 입력해주세요.');
     if (!isPasswordMatch) return setSubmitError('비밀번호가 일치하지 않습니다.');
     if (!agreed) return setSubmitError('약관에 동의해야 합니다.');
@@ -51,29 +43,24 @@ const SignupEmail = () => {
     setSubmitError(null);
 
     try {
-      // [수정] 1단계 + 2단계 정보만 합체 (인증 코드 없음)
       const fullUserData = {
-        ...stepOneData, // { name, gender, birthdate }
+        ...stepOneData,
         email: email,
         password: password,
       };
 
-      // 'authApi.js'의 'signupUser' 호출
       await signupUser(fullUserData);
 
-      // (회원가입 성공!)
       alert('회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.');
       navigate('/login');
 
     } catch (err) {
-      // (FastAPI가 보낸 에러 메시지를 표시)
       setSubmitError(err.message || '가입에 실패했습니다.');
     } finally {
       setSubmitLoading(false);
     }
   };
   
-  // 비밀번호 토글 버튼
   const passwordVisibilityToggle = (
     <button type="button" onClick={() => setIsPasswordVisible(!isPasswordVisible)} aria-label="비밀번호 보기 토글">
       <img src={isPasswordVisible ? EyeClosedIcon : EyeOpenIcon} alt="Toggle" className="w-5 h-5" />
@@ -86,12 +73,11 @@ const SignupEmail = () => {
   );
 
   return (
-    <div className="flex flex-col min-h-full">
-      <Header title="회원가입 (2/2)" showBackButton={true} />
-      <div className="flex-grow p-6">
+    <div className="flex flex-col h-full">
+      <HeaderWithBack title="회원가입 (2/2)" />
+      <div className="flex-grow flex flex-col justify-center p-6">
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           
-          {/* [수정] 이메일 입력창 (인증 버튼 제거) */}
           <Input
             label="이메일 주소"
             type="email"
@@ -99,7 +85,7 @@ const SignupEmail = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={submitLoading} 
-            error={submitError} // submitError를 여기에 표시
+            error={submitError}
           />
 
           <Input
@@ -143,7 +129,6 @@ const SignupEmail = () => {
             <Button 
               type="submit" 
               variant="form"
-              // [수정] disabled 조건 변경
               disabled={!isPasswordMatch || !agreed || submitLoading || !email}
             >
               {submitLoading ? '가입 중...' : '동의하고 가입하기'}
