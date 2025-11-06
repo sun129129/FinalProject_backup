@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date, datetime
-from typing import Literal, Optional # Optional 추가
+from typing import Literal, Optional, List # Optional 추가
 
 # --- 1. User (사용자) 스키마 ---
 
@@ -41,3 +41,32 @@ class Token(BaseModel):
 # 3. [추가!] '이메일 인증 요청' 시 받을 데이터 양식 (이게 빠졌었음!)
 class EmailRequest(BaseModel):
     email: EmailStr
+
+# --- 3. [추가!] Survey (설문) 스키마 ---
+
+# API가 React에게 '질문 목록'을 보내줄 때 쓸 양식
+# (GET /survey/questions)
+class Question(BaseModel):
+    question_id: int
+    question: str
+
+    class Config:
+        from_attributes = True # DB 모델(models.Survey)을 이 양식으로 자동 변환
+
+
+# React가 FastAPI에게 '답변 목록'을 보낼 때 쓸 양식
+# (POST /survey/submit)
+class AnswerSubmit(BaseModel):
+    question_id: int
+    answer: int  # (O=1, X=0)
+
+
+# API가 React에게 '최종 분석 결과'를 보내줄 때 쓸 양식
+# (GET /survey/results)
+class ScoreResult(BaseModel):
+    keyword_id: int
+    keyword_nm: str   # (models.Keyword에서 JOIN으로 가져올 이름)
+    survey_score: float
+
+    class Config:
+        from_attributes = True # DB 모델(models.ProductScore)을 이 양식으로 자동 변환

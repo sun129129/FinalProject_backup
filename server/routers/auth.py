@@ -1,7 +1,7 @@
 # server/routers/auth.py
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr # 1. Pydantic 스키마 import
 from passlib.context import CryptContext  # 2. 비밀번호 '암호화' 도구
@@ -175,3 +175,48 @@ def login_for_access_token(
 
     # React에게 '토큰'과 'user 객체'를 둘 다 돌려줌
     return {"access_token": access_token, "token_type": "bearer", "user": user}
+
+
+#
+# ... (def login_for_access_token 함수는 그대로 둬) ...
+#
+
+
+# --- [추가!] '경비원' 설정 ---
+# React가 HTTP 헤더에 'Authorization: Bearer [토큰]' 
+# 형식으로 토큰을 보내는지 검사할 '규칙'
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
+# --- [추가!] '경비원' 함수 ---
+# API가 호출될 때마다 이 함수가 '토큰'을 해독해서 '로그인한 유저'를 찾아냄
+def get_current_user(
+    token: str = Depends(oauth2_scheme), 
+    db: Session = Depends(get_db)
+):
+    # 1. '자격 증명 실패' 시 보낼 기본 에러
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        # 2. React가 보낸 '토큰'을 '비밀키'로 해독 시도
+        payload = jwt.decode(
+            token, settings.secret_key, algorithms=[settings.algorithm]
+        )
+        # 3. 토큰에서 '이메일'('sub'라는 이름으로 저장했었음) 꺼내기
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        # 해독 실패 (위조됐거나, 만료됐거나...)
+        raise credentials_exception
+    
+    # 4. DB에서 해당 이메일을 가진 'user' 찾기
+    user = get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+        
+    # 5. [성공!] 'user' 객체를 API 함수에 전달
+    return user
