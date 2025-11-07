@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List, Optional  # 👈 Optional 추가
+from typing import List, Optional
 
 import models
 import schemas
@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 # ----------------------------------------------------------------------
-# ❗️ [신규 API] '키워드' 목록 가져오기
+# [변경 없음] '키워드' 목록 가져오기
 # ----------------------------------------------------------------------
 @router.get("/keywords", response_model=List[schemas.Keyword])
 def get_keyword_list(
@@ -31,59 +31,62 @@ def get_keyword_list(
 
 
 # ----------------------------------------------------------------------
-# ❗️ [수정 API] '설문 질문' 목록 (선택된 것만) 가져오기
+# ❗️ [수정!] '설문 질문' 목록 (다대다 관계 M:N 적용)
 # ----------------------------------------------------------------------
-# response_model을 QuestionWithKeyword로 변경 (schemas.py에 추가 필요)
 @router.get("/questions", response_model=List[schemas.QuestionWithKeyword])
 def get_survey_questions(
-    # 'ids=1,2,3' 쿼리 파라미터를 '문자열'로 받음
-    ids: Optional[str] = None, 
+    ids: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
     """
     React에서 선택한 '키워드 ID' 목록(ids)에 해당하는
-    '설문 질문' 목록만 'keyword_nm'과 JOIN하여 React에게 보냅니다.
+    '설문 질문' 목록만 (SurveyKeyword, Keyword) 테이블과 JOIN하여 React에게 보냅니다.
     """
     if not ids:
-        # ID가 없으면 빈 목록 반환
         return []
 
-    # 콤마(,)로 구분된 문자열을 숫자 ID 목록 [1, 2, 3]으로 파싱
     try:
         keyword_ids = [int(id_str) for id_str in ids.split(',') if id_str.isdigit()]
     except ValueError:
-        raise HTTPException(status_code=400, detail="유효하지 않은 ID 형식입니다.")
-        
+        raise HTTPException(status_code=400, detail="Invalid ID format in list.") # 👈 (에러 메시지 수정)
+
     if not keyword_ids:
         return []
 
-    # ❗️ [쿼리 수정]
-    # Survey와 Keyword 테이블을 JOIN
-    # Survey.keyword_id가 keyword_ids 목록에 포함(in_)된 것만 필터링
+    # ❗️ [쿼리 수정] Survey -> SurveyKeyword -> Keyword (M:N JOIN)
     results = db.query(
-        models.Survey,             # (Survey 모델 객체)
-        models.Keyword.keyword_nm  # (Keyword 테이블의 이름)
+        models.Survey,             # (1) Survey 모델 (질문)
+        models.Keyword.keyword_nm, # (2) Keyword 이름
+        models.SurveyKeyword.keyword_id # (3) Keyword ID
     ).join(
-        models.Keyword, models.Survey.keyword_id == models.Keyword.keyword_id
+        models.SurveyKeyword, models.Survey.question_id == models.SurveyKeyword.question_id
+    ).join(
+        models.Keyword, models.SurveyKeyword.keyword_id == models.Keyword.keyword_id
     ).filter(
-        models.Survey.keyword_id.in_(keyword_ids) # ❗️ IN (...)
+        models.SurveyKeyword.keyword_id.in_(keyword_ids) # 👈 SurveyKeyword에서 필터링
     ).order_by(
-        models.Survey.keyword_id, models.Survey.question_id
+        models.SurveyKeyword.keyword_id, models.Survey.question_id
     ).all()
 
     if not results:
         return []
-        
-    # ❗️ [반환 방식 수정]
-    # (Survey, keyword_nm) 튜플을 -> QuestionWithKeyword 스키마로 매핑
-    # (schemas.py에 Question 스키마를 상속받는 새 스키마 필요)
+
+    # ❗️ [반환 방식 수정] (튜플(q, kn, kid)을 스키마로 수동 매핑)
+    # (이전 500 에러의 원인이었던 **.__dict__ 대신 수동 매핑 -> 안전함)
     questions_with_keyword = [
         schemas.QuestionWithKeyword(
-            **question.__dict__, # Survey 객체의 모든 필드를 복사
-            keyword_nm=keyword_name  # JOIN한 keyword_nm 추가
-        ) for question, keyword_name in results
+            question_id=q.question_id,
+            question=q.question,
+            keyword_id=kid,
+            keyword_nm=kn
+        ) for q, kn, kid in results
     ]
+    
+    # (선택 사항) 만약 한 질문이 여러 키워드에 중복 매핑되어
+    # "1번 질문(눈 건강)", "1번 질문(피로)" 처럼 중복으로 넘어가는 게 싫다면,
+    # 여기서 `questions_with_keyword` 리스트의 `question_id`를 기준으로 중복을 제거할 수 있습니다.
+    # (지금은 프론트엔드에 중복 없이 잘 나올 것으로 예상됩니다.)
     
     return questions_with_keyword
 
@@ -127,7 +130,7 @@ def submit_survey_answers(
 @router.get("/results", response_model=List[schemas.ScoreResult])
 def get_survey_results(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    current_user: models.User = Depends(get_current_user) # '경비원'
 ):
     """
     'product_score' 테이블에서 (LLM이 분석한) '로그인한 유저'의
@@ -143,7 +146,7 @@ def get_survey_results(
     ).filter(
         models.ProductScore.user_id == current_user.id
     ).order_by(
-        models.ProductScore.survey_score.desc()
+        models.ProductScore.survey_score.desc() # 점수 높은 순
     ).all()
     
     if not scores:
