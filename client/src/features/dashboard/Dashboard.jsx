@@ -80,7 +80,7 @@ const Dashboard = () => {
 
           {/* 9-3. 마이페이지 버튼 */}
           <button
-            onClick={() => navigate('/mypage')}
+            onClick={() => navigate('/myinfo')}
             className="w-full h-24 bg-blue-100 rounded-[40px] flex items-center p-5 relative"
           >
             <div className="w-16 h-16 flex items-center justify-center">
