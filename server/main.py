@@ -1,40 +1,42 @@
 # server/main.py
-
 from fastapi import FastAPI
-from routers import auth
-from routers import survey # 1. [추�?!] '?�문?�?survey)' import
-from fastapi.middleware.cors import CORSMiddleware 
-
-# 2. [?��? 추�???�? DB ?�결 �?모델 import
+from routers import auth, survey
+from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 import models
 
-# 3. [?��? 추�???�? DB ?�이�??�동 ?�성 (개발??
-#    (models.py???�의???�이�?�?DB???�는 ?�이블을 ?�성)
-Base.metadata.create_all(bind=engine)
+# 1. API 로직을 담을 '하위 앱(sub_app)'을 만듭니다.
+sub_app = FastAPI()
 
-
-# 4. FastAPI ???�리??'주방') ?�스?�스 ?�성
-app = FastAPI()
-
-# 5. 'CORS' ?�용 목록
-app.add_middleware(
+# 이제 모든 라우터와 미들웨어는 'sub_app'에 연결합니다.
+sub_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], 
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# prefix에서 '/api/v1' 부분을 제거했습니다.
+sub_app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+sub_app.include_router(survey.router, prefix="/survey", tags=["Survey"])
 
-# 6. '?�증?�? ?�우???�결
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["Auth"])
+# 이 루트 경로는 이제 '/api/v1/'에 해당됩니다.
+@sub_app.get("/")
+def read_api_root():
+    return {"message": "WonCare API v1"}
 
-# 7. [추�?!] '?�문?�? ?�우???�결
-app.include_router(survey.router, prefix="/api/v1/survey", tags=["Survey"])
+# 2. 전체를 감싸는 '메인 앱(main_app)'을 만듭니다.
+main_app = FastAPI()
 
+# DB 테이블 생성은 메인 앱 시작 시 한 번만 수행합니다.
+Base.metadata.create_all(bind=engine)
 
-# 8. ?�버 '?�문' (?��? 복구!)
-@app.get("/")
-def read_root():
-    return {"message": "안녕하세요??? WonCare API v1 ??서버입니다??"}
+# '/api/v1' 경로에 'sub_app' 전체를 탑재(mount)합니다.
+main_app.mount("/api/v1", sub_app)
 
+# 서버의 진짜 루트 경로 ('http://127.0.0.1:8000/')
+@main_app.get("/")
+def read_server_root():
+    return {"message": "안녕하세요! WonCare 서버입니다."}
+
+# FastAPI 실행은 uvicorn main:main_app --reload 와 같이 main_app을 대상으로 해야 합니다.

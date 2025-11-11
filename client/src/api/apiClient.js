@@ -5,9 +5,10 @@ import { useUserStore } from '../store/userStore'; // 1. Zustand 스토어 가�
 
 // 2. FastAPI 서버의 기본 URL (http://127.0.0.1:8000)
 //    (Vite는 'process'를 모르기 때문에, 이렇게 주소를 '직접' 적어줘야 해!)
-const API_BASE_URL = 'http://127.0.0.1:8000'; // (여기가 7번째 줄 근처일 거야)
+const API_BASE_URL = 'http://127.0.0.1:8000/api/v1/'; // (여기가 7번째 줄 근처일 거야)
 
 // 3. axios '인스턴스' 생성
+// axios -> JavaScript에서 HTTP 요청(API 통신)을 쉽게 할 수 있게 도와주는 라이브러리
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
@@ -19,6 +20,8 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     // 5. Zustand 스토어에서 'token'을 꺼냄
+    // Zustand 스토어 -> src/store/userStore.js
+    // Zustand 스토어: React에서 전역 상태를 간단하게 관리하기 위한 초경량 라이브러리
     const { token } = useUserStore.getState();
 
     if (token) {
@@ -35,7 +38,7 @@ apiClient.interceptors.request.use(
 // 5. '응답(Response) 가로채기'
 apiClient.interceptors.response.use(
   (response) => {
-    // 200번대 응답은 'response.data'만 깔끔하게 반환
+    // 200번대 응답(정상 실행)은 'response.data'만 깔끔하게 반환
     return response.data;
   },
   async (error) => {
