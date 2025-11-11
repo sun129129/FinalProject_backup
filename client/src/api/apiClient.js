@@ -5,7 +5,7 @@ import { useUserStore } from '../store/userStore'; // 1. Zustand 스토어 가�
 
 // 2. FastAPI 서버의 기본 URL (http://127.0.0.1:8000)
 //    (Vite는 'process'를 모르기 때문에, 이렇게 주소를 '직접' 적어줘야 해!)
-const API_BASE_URL = 'http://127.0.0.1:8000/api/v1'; // (여기가 7번째 줄 근처일 거야)
+const API_BASE_URL = 'http://127.0.0.1:8000'; // (여기가 7번째 줄 근처일 거야)
 
 // 3. axios '인스턴스' 생성
 const apiClient = axios.create({

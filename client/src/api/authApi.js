@@ -18,7 +18,7 @@ export const loginUser = async (email, password) => {
 
   // 3. 'apiClient'로 진짜 /login API 호출
   //    (apiClient가 'response.data'만 반환하도록 설정되어 있음)
-  return apiClient.post('/auth/login', formData, {
+  return apiClient.post('/api/v1/auth/login', formData, {
     // 4. [필수] 헤더를 '폼 데이터'용으로 설정
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
   });
@@ -31,7 +31,7 @@ export const loginUser = async (email, password) => {
  */
 export const signupUser = async (userData) => {
   // '회원가입' API는 JSON을 받으므로, 그냥 객체를 보냄
-  return apiClient.post('/auth/signup', userData);
+  return apiClient.post('/api/v1/auth/signup', userData);
   // (성공 시, { id: 1, email: "...", ... } 같은 User 객체를 반환)
 };
 
@@ -45,7 +45,7 @@ export const signupUser = async (userData) => {
  */
 export const findUserId = async (name, birthdate) => {
   // (FastAPI 서버에 '/auth/find-id' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/find-id', { name, birthdate });
+  return apiClient.post('/api/v1/auth/find-id', { name, birthdate });
 };
 
 /**
@@ -56,7 +56,7 @@ export const findUserId = async (name, birthdate) => {
  */
 export const findUserPassword = async (name, birthdate, email) => {
   // (FastAPI 서버에 '/auth/find-password-verify' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/find-password-verify', { name, birthdate, email });
+  return apiClient.post('/api/v1/auth/find-password-verify', { name, birthdate, email });
 };
 
 /**
@@ -66,7 +66,7 @@ export const findUserPassword = async (name, birthdate, email) => {
  */
 export const resetUserPassword = async (email, newPassword) => {
   // (FastAPI 서버에 '/auth/reset-password' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/reset-password', { email, password: newPassword });
+  return apiClient.post('/api/v1/auth/reset-password', { email, password: newPassword });
 };
 
 /**
@@ -75,7 +75,7 @@ export const resetUserPassword = async (email, newPassword) => {
  */
 export const verifyUserEmail = async (email) => {
   // (FastAPI 서버에 '/auth/verify-email' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/verify-email', { email });
+  return apiClient.post('/api/v1/auth/verify-email', { email });
 };
 
 /**
@@ -83,5 +83,5 @@ export const verifyUserEmail = async (email) => {
  * @param {string} email 
  */
 export const requestVerificationCode = async (email) => {
-  return apiClient.post('/auth/request-verification', { email });
+  return apiClient.post('/api/v1/auth/request-verification', { email });
 };
