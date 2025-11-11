@@ -42,9 +42,13 @@ const SignupEmail = () => {
     setSubmitError(null);
 
     try {
+      // 백엔드 스키마에 맞게 필드명을 수정하여 전송
       const fullUserData = {
-        ...stepOneData,
-        email: email,
+        user_name: stepOneData.name,
+        user_email: email,
+        gender: stepOneData.gender,
+        birthdate: stepOneData.birthdate,
+        mobile_num: stepOneData.mobileNum,
         password: password,
       };
 

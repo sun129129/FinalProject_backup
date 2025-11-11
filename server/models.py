@@ -1,46 +1,28 @@
 # server/models.py
 
-
-#설문DB가져오기위해서
-from sqlalchemy import Column, Integer, String, Boolean, Date, Enum, TIMESTAMP, Float, ForeignKey 
-
-from sqlalchemy import Column, Integer, String, Boolean, Date, Enum, TIMESTAMP
+from sqlalchemy import (
+    Column, Integer, String, Boolean, Enum, TIMESTAMP, Float, ForeignKey,
+    DATETIME, CHAR
+)
 from sqlalchemy.sql import func
-from database import Base # 1. database.py에서 '부모' Base 클래스 가져오기
+from database import Base
 
-# 2. 'users' 테이블을 파이썬 클래스로 정의
-#    (Base를 상속받음)
+# 'users' 테이블을 새로운 스키마에 맞게 정의
 class User(Base):
-    __tablename__ = "users" # 3. MySQL에 있는 실제 테이블 이름
+    __tablename__ = "users"
 
-    # 4. MySQL에서 만들었던 컬럼들을 그대로 정의
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(255), nullable=False, unique=True)
+    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_name = Column(String(100), nullable=False)
+    user_email = Column(String(255), nullable=False, unique=True)
     hashed_password = Column(String(255), nullable=False)
-    name = Column(String(100), nullable=False)
-    
-    # 'gender_enum'이라는 이름으로 ENUM 타입을 명시적으로 생성
-    gender = Column(Enum('male', 'female', name='gender_enum'), nullable=False) 
-    
-    birthdate = Column(Date, nullable=False)
-    
-    is_active = Column(Boolean, nullable=False, default=True)
-    
-    created_at = Column(TIMESTAMP, server_default=func.now())
-    updated_at = Column(TIMESTAMP, server_default=func.now(), onupdate=func.now())
+    gender = Column(String(10), nullable=False)
+    birthdate = Column(String(10), nullable=False)
+    mobile_num = Column(String(15), nullable=False) # 전화번호 필드 추가
+    created_at = Column(DATETIME, nullable=False, server_default=func.now())
+    updated_at = Column(DATETIME, nullable=False, server_default=func.now(), onupdate=func.now())
+    is_active = Column(Boolean, nullable=False, default=True) # TINYINT(1)은 Boolean으로 처리
 
-    # (나중에 '설문' 테이블을 만들면, 여기에 'relationship'을 추가해서 연결하게 됨)
-
-
-
-
-
-
-    # server/models.py
-# ... (User 클래스 밑에 추가) ...
-from sqlalchemy import ForeignKey
-
-# [추가!] '인증 코드' 임시 저장 테이블
+# '인증 코드' 임시 저장 테이블
 class VerificationCode(Base):
     __tablename__ = "verification_codes"
 
@@ -51,43 +33,38 @@ class VerificationCode(Base):
     expires_at = Column(TIMESTAMP, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
 
-
-
-
-# 설문 DB들
-# ... (User, VerificationCode 클래스 밑에 추가) ...
-
-# [추가!] 1. '설문' (질문 목록)
+# '설문' (질문 목록)
 class Survey(Base):
     __tablename__ = "survey"
     question_id = Column(Integer, primary_key=True, autoincrement=True)
-    question = Column(String(500), nullable=False)
+    question = Column(String(255), nullable=False)
+    question_category = Column(CHAR(2), nullable=False) # 질문 카테고리 필드 추가
 
-# [추가!] 2. '키워드' (29개 카테고리)
+# '키워드' (카테고리)
 class Keyword(Base):
     __tablename__ = "keyword"
     keyword_id = Column(Integer, primary_key=True, autoincrement=True)
-    keyword_nm = Column(String(100), nullable=False, unique=True)
+    keyword_nm = Column(String(100), nullable=False)
 
-# [추가!] 3. '설문_키워드' (매핑)
+# '설문_키워드' (매핑)
 class SurveyKeyword(Base):
     __tablename__ = "survey_keyword"
     question_id = Column(Integer, ForeignKey("survey.question_id"), primary_key=True)
     keyword_id = Column(Integer, ForeignKey("keyword.keyword_id"), primary_key=True)
 
-# [추가!] 4. '설문 응답' (LLM이 분석할 '날것')
+# '설문 응답'
 class SurveyResponse(Base):
     __tablename__ = "survey_response"
     response_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     question_id = Column(Integer, ForeignKey("survey.question_id"), nullable=False)
-    answer = Column(Integer, nullable=False) # 1=O, 0=X
-    created_at = Column(TIMESTAMP, server_default=func.now())
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False) # 외래 키 변경
+    answer = Column(Integer, nullable=False)
+    created_at = Column(DATETIME, nullable=False, server_default=func.now())
 
-# [추가!] 5. '제품 점수' (LLM이 채울 '성적표')
+# '제품 점수'
 class ProductScore(Base):
     __tablename__ = "product_score"
-    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), primary_key=True) # 외래 키 변경
     keyword_id = Column(Integer, ForeignKey("keyword.keyword_id"), primary_key=True)
-    survey_score = Column(Float, default=0.0)
-    card_score = Column(Float, default=0.0)
+    survey_score = Column(Float, default=None)
+    card_score = Column(Float, default=None)

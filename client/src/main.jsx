@@ -8,7 +8,7 @@ import './styles/globals.css'; // 2. (중요) Tailwind CSS가 적용된 전역 �
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter> {/* 3. App 전체를 BrowserRouter로 감싸기 */}
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}> {/* 3. App 전체를 BrowserRouter로 감싸기 */}
       <App />
     </BrowserRouter>
   </React.StrictMode>

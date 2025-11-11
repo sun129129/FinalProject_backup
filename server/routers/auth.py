@@ -49,7 +49,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 # 13. [DB] 이메일로 사용자를 찾는 함수 (가입 여부만 확인)
 def get_user_by_email(db: Session, email: str):
-    return db.query(models.User).filter(models.User.email == email).first()
+    return db.query(models.User).filter(models.User.user_email == email).first()
 
 # 14. [DB] '인증 코드' 저장/업데이트 함수 (목적'purpose' 포함)
 def upsert_verification_code(db: Session, email: str, code: str, purpose: str):
@@ -122,7 +122,7 @@ async def request_verification_code(
 @router.post("/signup", response_model=schemas.User)
 def signup_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     
-    if get_user_by_email(db, email=user.email):
+    if get_user_by_email(db, email=user.user_email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 사용 중인 이메일입니다."
@@ -141,10 +141,11 @@ def signup_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
 
     db_user = models.User(
-        email=user.email,
-        name=user.name,
+        user_email=user.user_email,
+        user_name=user.user_name,
         gender=user.gender,
         birthdate=user.birthdate,
+        mobile_num=user.mobile_num,
         hashed_password=hashed_password
     )
     db.add(db_user)
@@ -153,7 +154,7 @@ def signup_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return db_user
 
 # 18. [API] "로그인" (토큰 + 유저 정보 반환)
-@router.post("/login")
+@router.post("/login", response_model=schemas.Token)
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(), 
     db: Session = Depends(get_db)
@@ -170,7 +171,7 @@ def login_for_access_token(
         
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     access_token = create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": user.user_email}, expires_delta=access_token_expires
     )
 
     # React에게 '토큰'과 'user 객체'를 둘 다 돌려줌

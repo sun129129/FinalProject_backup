@@ -40,6 +40,7 @@ const SignupInfo = () => {
   const [birthYear, setBirthYear] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthDay, setBirthDay] = useState('');
+  const [mobileNum, setMobileNum] = useState(''); // 1. 전화번호 state 추가
   const [error, setError] = useState(null);
 
   const handleNameChange = (e) => {
@@ -62,19 +63,27 @@ const SignupInfo = () => {
     setBirthDay(e.target.value);
     if (error) setError(null);
   };
+  // 2. 전화번호 핸들러 추가
+  const handleMobileNumChange = (e) => {
+    setMobileNum(e.target.value);
+    if (error) setError(null);
+  };
 
   const handleNextStep = (e) => {
     e.preventDefault();
     
-    if (!name || !gender || !birthYear || !birthMonth || !birthDay) {
+    // 3. 전화번호 유효성 검사 추가
+    if (!name || !gender || !birthYear || !birthMonth || !birthDay || !mobileNum) {
       setError('모든 항목을 입력해주세요.');
       return;
     }
     
+    // 4. 전달할 데이터에 전화번호 추가
     const stepOneData = {
       name,
       gender,
       birthdate: `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`,
+      mobileNum,
     };
     
     navigate('/signup/email', { state: { stepOneData } }); 
@@ -94,6 +103,16 @@ const SignupInfo = () => {
             value={name}
             onChange={handleNameChange}
           />
+
+          {/* 5. 전화번호 입력 필드 추가 */}
+          <Input
+            label="전화번호"
+            type="tel"
+            placeholder="'-' 없이 숫자만 입력"
+            value={mobileNum}
+            onChange={handleMobileNumChange}
+          />
+
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               성별

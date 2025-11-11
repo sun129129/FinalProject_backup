@@ -34,7 +34,7 @@ app.include_router(survey.router, prefix="/api/v1/survey", tags=["Survey"])
 
 
 # 8. ?�버 '?�문' (?��? 복구!)
-@app.get("/api/v1/")
+@app.get("/")
 def read_root():
     return {"message": "안녕하세요??? WonCare API v1 ??서버입니다??"}
 

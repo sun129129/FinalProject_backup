@@ -106,13 +106,13 @@ def submit_survey_answers(
     """
     
     db.query(models.SurveyResponse).filter(
-        models.SurveyResponse.user_id == current_user.id
+        models.SurveyResponse.user_id == current_user.user_id
     ).delete()
     
     new_responses = []
     for answer in answers:
         db_answer = models.SurveyResponse(
-            user_id=current_user.id,
+            user_id=current_user.user_id,
             question_id=answer.question_id,
             answer=answer.answer # 0, 1, 2
         )
@@ -144,7 +144,7 @@ def get_survey_results(
     ).join(
         models.Keyword, models.ProductScore.keyword_id == models.Keyword.keyword_id
     ).filter(
-        models.ProductScore.user_id == current_user.id
+        models.ProductScore.user_id == current_user.user_id
     ).order_by(
         models.ProductScore.survey_score.desc() # 점수 높은 순
     ).all()
