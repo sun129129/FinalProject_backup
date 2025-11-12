@@ -59,6 +59,7 @@ class Question(BaseModel):
 
 # 'Survey'와 'Keyword'를 JOIN한 결과를 위한 스키마 (기존 구조 유지)
 class QuestionWithKeyword(Question):
+    keyword_id: int
     keyword_nm: str
 
 # React가 답변 제출 시 사용할 스키마

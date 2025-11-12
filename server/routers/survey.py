@@ -78,6 +78,7 @@ def get_survey_questions(
         schemas.QuestionWithKeyword(
             question_id=q.question_id,
             question=q.question,
+            question_category=q.question_category, # 👈 [수정] 누락된 필드 추가
             keyword_id=kid,
             keyword_nm=kn
         ) for q, kn, kid in results
