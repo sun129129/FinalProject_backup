@@ -7,7 +7,7 @@ import apiClient from './apiClient'; // '전화기 본체' (axios 인스턴스)
 // (백엔드: GET /api/v1/survey/keywords)
 // ----------------------------------------------------------------------
 export const getKeywordList = () => {
-  return apiClient.get('/api/v1/survey/keywords');
+  return apiClient.get('/survey/keywords');
   // (성공 시, [{ keyword_id: 1, keyword_nm: "피로/활력" }, ...])
 };
 
@@ -28,7 +28,7 @@ export const getQuestionsByKeywords = (keywordIds) => {
   const idString = keywordIds.join(',');
 
   // 쿼리 파라미터로 전송
-  return apiClient.get(`/api/v1/survey/questions?ids=${idString}`);
+  return apiClient.get(`/survey/questions?ids=${idString}`);
   // (성공 시, [{ question_id: 101, question: "...", keyword_id: 1, keyword_nm: "피로/활력" }, ...])
 };
 
@@ -41,7 +41,7 @@ export const getQuestionsByKeywords = (keywordIds) => {
  */
 export const submitSurveyAnswers = (answers) => {
   // 'answers' 배열 자체를 body로 전송 (FastAPI가 List[schemas.AnswerSubmit]를 기대)
-  return apiClient.post('/api/v1/survey/submit', answers);
+  return apiClient.post('/survey/submit', answers);
   // (성공 시, { message: "..." })
 };
 
@@ -50,7 +50,7 @@ export const submitSurveyAnswers = (answers) => {
 // (백엔드: GET /api/v1/survey/results)
 // ----------------------------------------------------------------------
 export const getSurveyResults = () => {
-  return apiClient.get('/api/v1/survey/results');
+  return apiClient.get('/survey/results');
   // (성공 시, [{ keyword_id: 1, keyword_nm: "피로", survey_score: 85.0 }, ...])
 };
 

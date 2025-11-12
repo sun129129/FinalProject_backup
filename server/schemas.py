@@ -38,6 +38,11 @@ class Token(BaseModel):
 class EmailRequest(BaseModel):
     email: EmailStr
 
+class FindIdRequest(BaseModel):
+    user_name: str
+    birthdate: str
+
+
 # --- 3. Survey (설문) 스키마 ---
 
 # 'keyword' 테이블 스키마

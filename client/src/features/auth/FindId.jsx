@@ -71,6 +71,7 @@ const FindId = () => {
             <Input
               label="생년월일"
               type="text"
+              placeholder="- 포함 8자리 숫자 입력(예: 1990-01-01)"
               value={birthdate}
               onChange={handleBirthdateChange}
               disabled={loading}
