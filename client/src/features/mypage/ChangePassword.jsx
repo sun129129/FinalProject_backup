@@ -3,17 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
-import { useAuth } from '../../hooks/useAuth';
+import { useUserStore } from '../../store/userStore';
 import { resetUserPassword } from '../../api/authApi';
+import EyeOpenIcon from '../../assets/eye-open.svg';
+import EyeClosedIcon from '../../assets/eye-closed.svg';
 
 const ChangePassword = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // 로그인한 사용자 정보를 가져옵니다.
+  const { user } = useUserStore(); // 로그인한 사용자 정보를 가져옵니다.
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isNewPasswordVisible, setIsNewPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
 
   const isPasswordValid = newPassword.length >= 8;
   const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
@@ -34,13 +38,41 @@ const ChangePassword = () => {
       // API를 호출하여 비밀번호를 변경합니다.
       await resetUserPassword(user.user_email, newPassword);
       alert('비밀번호가 성공적으로 변경되었습니다!');
-      navigate(-1); // 이전 페이지(마이페이지)로 돌아갑니다.
+      navigate('/mypage'); // 마이페이지로 돌아갑니다.
     } catch (error) {
       setErrorMessage(error.response?.data?.detail || '비밀번호 변경에 실패했습니다.');
     } finally {
       setLoading(false);
     }
   };
+
+  const newPasswordVisibilityToggle = (
+    <button
+      type="button"
+      onClick={() => setIsNewPasswordVisible(!isNewPasswordVisible)}
+      aria-label="새 비밀번호 보기 토글"
+    >
+      <img
+        src={isNewPasswordVisible ? EyeOpenIcon : EyeClosedIcon}
+        alt="Toggle"
+        className="w-5 h-5 text-gray-500"
+      />
+    </button>
+  );
+
+  const confirmPasswordVisibilityToggle = (
+    <button
+      type="button"
+      onClick={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+      aria-label="새 비밀번호 확인 보기 토글"
+    >
+      <img
+        src={isConfirmPasswordVisible ? EyeOpenIcon : EyeClosedIcon}
+        alt="Toggle"
+        className="w-5 h-5 text-gray-500"
+      />
+    </button>
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -54,11 +86,12 @@ const ChangePassword = () => {
             label="이메일"
             value={user?.user_email || ''}
             readOnly
-            disabled={loading}
+            disabled
           />
           <Input
             label="새 비밀번호"
-            type="password"
+            type={isNewPasswordVisible ? 'text' : 'password'}
+            rightAccessory={newPasswordVisibilityToggle}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             placeholder="8자 이상 입력"
@@ -66,7 +99,8 @@ const ChangePassword = () => {
           />
           <Input
             label="새 비밀번호 확인"
-            type="password"
+            type={isConfirmPasswordVisible ? 'text' : 'password'}
+            rightAccessory={confirmPasswordVisibilityToggle}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="비밀번호 재입력"
