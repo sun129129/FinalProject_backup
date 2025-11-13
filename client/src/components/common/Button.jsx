@@ -24,7 +24,7 @@ const Button = ({
   // 2. variant별 스타일
   const styles = {
     primary: 'bg-[rgb(26,62,169)] text-white hover:bg-blue-900',
-    secondary: 'bg-white text-gray-800 border border-gray-300 hover:bg-gray-50',
+    secondary: 'bg-white text-blue-900 border border-gray-300 hover:bg-gray-50',
     form: 'bg-[rgb(80,103,199)] text-white hover:bg-blue-700',
   };
 

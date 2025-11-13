@@ -39,13 +39,13 @@ export const signupUser = async (userData) => {
 // --- [추가] 아이디/비밀번호 찾기 API ---
 
 /**
- * 3. 아이디 찾기 요청
+ * 3. 아이디(이메일) 찾기 요청
  * @param {string} name - 사용자 이름
  * @param {string} birthdate - 사용자 생년월일 (YYYY-MM-DD)
  */
 export const findUserId = async (name, birthdate) => {
   // (FastAPI 서버에 '/auth/find-id' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/find-id', { name, birthdate });
+  return apiClient.post('/auth/find-id', { user_name: name, birthdate });
 };
 
 /**
@@ -56,7 +56,16 @@ export const findUserId = async (name, birthdate) => {
  */
 export const findUserPassword = async (name, birthdate, email) => {
   // (FastAPI 서버에 '/auth/find-password-verify' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/find-password-verify', { name, birthdate, email });
+  return apiClient.post('/auth/find-password-verify', { user_name: name, birthdate, user_email: email });
+};
+
+/**
+ * 5. 비밀번호 재설정 인증 코드 확인
+ * @param {string} email 
+ * @param {string} code 
+ */
+export const verifyPasswordResetCode = async (email, code) => {
+  return apiClient.post('/auth/verify-password-reset-code', { email, code });
 };
 
 /**

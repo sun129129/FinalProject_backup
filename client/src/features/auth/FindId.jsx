@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { findUserId } from '../../api/authApi';
 import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
@@ -28,22 +29,11 @@ const FindId = () => {
     setLoading(true);
     setError(null);
 
-    const mockApiCall = () =>
-      new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (name === '테스트' && birthdate === '1234') {
-            resolve({ userId: 'your-id-123' });
-          } else {
-            reject(new Error('일치하는 사용자가 없습니다.'));
-          }
-        }, 1000);
-      });
-
     try {
-      const data = await mockApiCall();
-      setFoundId(data.userId);
+      const data = await findUserId(name, birthdate);
+      setFoundId(data.user_email);
     } catch (err) {
-      setError(err.message || '알 수 없는 오류가 발생했습니다.');
+      setError(err.response?.data?.detail || err.message || '알 수 없는 오류가 발생했습니다.');
       setFoundId(null);
     } finally {
       setLoading(false);
@@ -71,6 +61,7 @@ const FindId = () => {
             <Input
               label="생년월일"
               type="text"
+              placeholder="- 포함 8자리 숫자 입력(예: 1990-01-01)"
               value={birthdate}
               onChange={handleBirthdateChange}
               disabled={loading}

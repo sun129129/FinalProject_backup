@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input';
-import InputWithButton from '../../components/common/InputWithButton';
 import Button from '../../components/common/Button';
 import EyeOpenIcon from '../../assets/eye-open.svg';
 import EyeClosedIcon from '../../assets/eye-closed.svg';
+import { resetUserPassword } from '../../api/authApi';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [isVerified, setIsVerified] = useState(false);
   const [email, setEmail] = useState(location.state?.email || '');
   
   const [newPassword, setNewPassword] = useState('');
@@ -26,10 +25,6 @@ const ResetPassword = () => {
   const isMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
   const validationError = isMismatch ? '비밀번호가 일치하지 않습니다.' : null;
 
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-    if (apiError) setApiError(null);
-  };
   const handleNewPasswordChange = (e) => {
     setNewPassword(e.target.value);
     if (apiError) setApiError(null);
@@ -39,17 +34,6 @@ const ResetPassword = () => {
     if (apiError) setApiError(null);
   };
 
-  const handleVerify = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setApiError(null);
-    
-    await new Promise(res => setTimeout(res, 1000));
-
-    setIsVerified(true);
-    setLoading(false);
-  };
-
   const handleSave = async (e) => {
     e.preventDefault();
     if (!isMatch) return;
@@ -57,10 +41,15 @@ const ResetPassword = () => {
     setLoading(true);
     setApiError(null);
 
-    await new Promise(res => setTimeout(res, 1000));
-
-    alert('비밀번호가 성공적으로 변경되었습니다!');
-    navigate('/login');
+    try {
+      await resetUserPassword(email, newPassword);
+      alert('비밀번호가 성공적으로 변경되었습니다!');
+      navigate('/login');
+    } catch (err) {
+      setApiError(err.response?.data?.detail || '오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
   
   const passwordVisibilityToggle = (
@@ -80,26 +69,8 @@ const ResetPassword = () => {
       
       <div className="flex-grow flex flex-col justify-center p-6">
         
-        {!isVerified && (
-          <form className="flex flex-col gap-4" onSubmit={handleVerify}>
-            <p className="text-sm text-gray-600">본인 확인을 위해 이메일 인증을 완료해 주세요.</p>
-            <InputWithButton
-              label="이메일"
-              type="email"
-              value={email}
-              onChange={handleEmailChange}
-              buttonText={loading ? '전송 중...' : '인증'}
-              onButtonClick={handleVerify}
-              disabled={loading}
-              buttonDisabled={loading}
-              error={apiError}
-            />
-          </form>
-        )}
-
-        {isVerified && (
           <form className="flex flex-col gap-4" onSubmit={handleSave}>
-            <p className="text-sm text-gray-600">인증이 완료되었습니다. 새 비밀번호를 입력하세요.</p>
+            <p className="text-sm text-gray-600">새 비밀번호를 입력하세요.</p>
             
             <Input
               label="이메일"
@@ -139,8 +110,6 @@ const ResetPassword = () => {
               </Button>
             </div>
           </form>
-        )}
-
       </div>
     </div>
   );

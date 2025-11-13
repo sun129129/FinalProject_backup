@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import { findUserPassword } from '../../api/authApi';
 
 const FindPassword = () => {
   const navigate = useNavigate();
@@ -30,26 +31,12 @@ const FindPassword = () => {
     setLoading(true);
     setError(null);
 
-    const mockApiCall = () =>
-      new Promise((resolve, reject) => {
-        setTimeout(() => {
-          if (
-            name === '테스트' &&
-            birthdate === '1234' &&
-            email === 'test@test.com'
-          ) {
-            resolve({ success: true });
-          } else {
-            reject(new Error('일치하는 사용자가 없습니다.'));
-          }
-        }, 1000);
-      });
-
     try {
-      await mockApiCall();
+      await findUserPassword(name, birthdate, email);
+      alert('인증 코드가 이메일로 발송되었습니다.');
       navigate('/reset-password', { state: { email: email } });
     } catch (err) {
-      setError(err.message || '알 수 없는 오류가 발생했습니다.');
+      setError(err.response?.data?.detail || err.message || '알 수 없는 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -70,6 +57,7 @@ const FindPassword = () => {
           <Input
             label="생년월일"
             type="text"
+            placeholder="- 포함 8자리 숫자 입력(예: 1990-01-01)"
             value={birthdate}
             onChange={handleBirthdateChange}
             disabled={loading}
