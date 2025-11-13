@@ -27,7 +27,7 @@ const DUMMY_INTERESTS = [
   { id: "bloodsugar", name: "혈당", icon_name: "bloodsugar.png" },
   { id: "menopause_f", name: "갱년기 여성", icon_name: "f_menopause.png" },
   { id: "menopause_m", name: "갱년기 남성", icon_name: "m_menopause.png" },
-  { id: "pms", name: "월경 전 불편", icon_name: "pms.png" },
+  { id: "pms", name: "월경 전 불편한 상태", icon_name: "pms.png" },
   { id: "triglyceride", name: "혈중 중성지방", icon_name: "triglyceride.png" },
   { id: "cholesterol", name: "콜레스테롤", icon_name: "cholesterol.png" },
   { id: "bloodpressure", name: "혈압", icon_name: "bloodpressure.png" },

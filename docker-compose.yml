@@ -1,0 +1,33 @@
+# docker-compose 파일 형식 버전을 지정합니다.
+version: '3.8'
+
+# 실행하려는 서비스(컨테이너)들을 정의합니다.
+services:
+  # 백엔드 서비스 (fastapi)
+  backend:
+    # 'server' 디렉토리의 Dockerfile을 사용하여 이미지를 빌드합니다.
+    build: ./server
+    # 컨테이너의 8000번 포트를 호스트(내 PC)의 8000번 포트와 연결합니다.
+    ports:
+      - "8000:8000"
+    # 컨테이너의 이름을 'woncare-backend'로 지정합니다.
+    container_name: woncare-backend
+    # 아래 주석을 해제하면, 로컬 소스코드가 컨테이너와 실시간으로 동기화되어
+    # 개발 시 코드를 수정하면 서버가 자동으로 재시작됩니다. (개발용)
+    # volumes:
+    #   - ./server:/app
+    # command: uvicorn main:main_app --host 0.0.0.0 --port 8000 --reload
+
+  # 프론트엔드 서비스 (react + nginx)
+  frontend:
+    # 'client' 디렉토리의 Dockerfile을 사용하여 이미지를 빌드합니다.
+    build: ./client
+    # 컨테이너의 80번 포트(Nginx)를 호스트의 8080번 포트와 연결합니다.
+    # 이제 브라우저에서 http://localhost:8080 으로 접속할 수 있습니다.
+    ports:
+      - "8080:80"
+    # 컨테이너의 이름을 'woncare-frontend'로 지정합니다.
+    container_name: woncare-frontend
+    # 백엔드 서비스가 먼저 실행된 후에 프론트엔드 서비스가 실행되도록 의존성을 설정합니다.
+    depends_on:
+      - backend
