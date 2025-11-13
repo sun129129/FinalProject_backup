@@ -18,19 +18,20 @@ conf = ConnectionConfig(
 # 'FastMail' 인스턴스 생성 (이게 '우체국' 본체!)
 fm = FastMail(conf)
 
-# '인증 코드' 이메일 발송 함수
-async def send_verification_email(email_to: str, code: str):
+# '인증 링크' 이메일 발송 함수
+async def send_verification_email(email_to: str, verification_url: str):
     message = MessageSchema(
-        subject="[WonCare] 회원가입 인증 코드입니다.",
+        subject="[WonCare] 이메일 인증을 완료해 주세요.",
         recipients=[email_to],  # 받는 사람
         body=f"""
-        <div style="font-family: 'Arial', sans-serif; text-align: center; padding: 20px;">
-            <h2>WonCare 회원가입 인증 코드</h2>
-            <p>회원가입을 완료하려면 아래 6자리 코드를 입력해 주세요.</p>
-            <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; background-color: #f4f4f4; padding: 10px 20px; margin: 20px 0; display: inline-block;">
-                {code}
-            </div>
-            <p style="color: #888;">이 코드는 5분간 유효합니다.</p>
+        <div style="font-family: 'Arial', sans-serif; text-align: center; padding: 40px; background-color: #f9f9f9;">
+            <h2 style="color: #333;">WonCare 이메일 인증</h2>
+            <p style="color: #555; font-size: 16px;">회원가입을 거의 다 마쳤습니다! 아래 버튼을 클릭하여 이메일 주소를 인증해 주세요.</p>
+            <a href="{verification_url}" target="_blank" style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 15px 25px; margin: 20px 0; text-decoration: none; border-radius: 5px; font-size: 18px; font-weight: bold;">
+                이메일 인증하기
+            </a>
+            <p style="color: #888; font-size: 14px;">이 링크는 15분간 유효합니다.</p>
+            <p style="color: #aaa; font-size: 12px;">만약 직접 요청하지 않으셨다면 이 이메일을 무시해 주세요.</p>
         </div>
         """,
         subtype="html"

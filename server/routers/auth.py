@@ -178,9 +178,35 @@ def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 
-#
-# ... (def login_for_access_token 함수는 그대로 둬) ...
-#
+@router.post("/find-id")
+def find_id(request: schemas.FindIdRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(
+        models.User.user_name == request.user_name,
+        models.User.birthdate == request.birthdate
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="일치하는 사용자가 없습니다."
+        )
+    return {"user_email": user.user_email}
+
+
+@router.post("/reset-password")
+def reset_password(request: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
+    user = get_user_by_email(db, email=request.email)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="사용자를 찾을 수 없습니다."
+        )
+
+    hashed_password = get_password_hash(request.password)
+    user.hashed_password = hashed_password
+    db.commit()
+
+    return {"message": "비밀번호가 성공적으로 재설정되었습니다."}
 
 
 # --- [추가!] '경비원' 설정 ---

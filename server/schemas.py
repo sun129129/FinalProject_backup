@@ -42,6 +42,16 @@ class FindIdRequest(BaseModel):
     user_name: str
     birthdate: str
 
+class FindPasswordRequest(BaseModel):
+    user_name: str
+    birthdate: str
+    user_email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
 
 # --- 3. Survey (설문) 스키마 ---
 

@@ -3,6 +3,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
+// ------------- 상대 경로 -------------
+
 // 1. 우리가 만든 페이지 컴포넌트들을 모두 가져오기
 import Home from '../features/auth/Home';
 import Login from '../features/auth/Login';
@@ -21,6 +23,7 @@ import Survey from '../features/survey/Survey';
 import MyPage from '../features/mypage/MyPage.jsx';
 import ChangePassword from '../features/mypage/ChangePassword.jsx';
 import DeleteAccount from '../features/mypage/DeleteAccounts.jsx';
+import VerifyCurrentPassword from '../features/mypage/VerifyCurrentPassword.jsx';
 
 // 2. 주소(path)와 컴포넌트(element)를 짝지어주기
 const AppRoutes = () => {
@@ -48,6 +51,7 @@ const AppRoutes = () => {
           <Route index element={<MyPage />} /> {/* /mypage */}
           <Route path="change-password" element={<ChangePassword />} /> {/* /mypage/change-password */}
           <Route path="delete-account" element={<DeleteAccount />} /> {/* /mypage/delete-account */}
+          <Route path="verify-current-password" element={<VerifyCurrentPassword />} /> {/* /mypage/verify-current-password */}
       </Route>
 
       {/* 404 Not Found 페이지 (일치하는 주소가 없을 때) */}
