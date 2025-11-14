@@ -14,9 +14,9 @@ services:
     container_name: woncare-backend
     # 아래 주석을 해제하면, 로컬 소스코드가 컨테이너와 실시간으로 동기화되어
     # 개발 시 코드를 수정하면 서버가 자동으로 재시작됩니다. (개발용)
-    # volumes:
-    #   - ./server:/app
-    # command: uvicorn main:main_app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./server:/app
+    command: uvicorn main:main_app --host 0.0.0.0 --port 8000 --reload
 
   # 프론트엔드 서비스 (react + nginx)
   frontend:

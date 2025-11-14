@@ -18,6 +18,8 @@ import ResetPassword from '../features/auth/ResetPassword';
 // Dashboard 및 Survey
 import Dashboard from '../features/dashboard/Dashboard';
 import Survey from '../features/survey/Survey';
+import SupplementOCR from '../features/intake/SupplementOCR'; // OCR 컴포넌트 추가
+import MySupplements from '../features/intake/MySupplements.jsx'; // 내 영양제 페이지
 
 // 마이페이지 관련 컴포넌트들 (새로운 경로)
 import MyPage from '../features/mypage/MyPage.jsx';
@@ -44,6 +46,8 @@ const AppRoutes = () => {
            로그인 여부를 체크하는 로직이 추가되어야 합니다. */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/survey" element={<Survey />} />
+      <Route path="/intake-ocr" element={<SupplementOCR />} /> {/* OCR 페이지 라우트 추가 */}
+      <Route path="/my-supplements" element={<MySupplements />} /> {/* 내 영양제 페이지 라우트 추가 */}
 
       {/* 🔑 마이페이지 라우트: 중첩 라우트 사용 (Nesting) */}
       {/* /mypage로 접근하면 MyPage가 기본으로 보임 (index) */}

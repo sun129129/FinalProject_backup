@@ -80,7 +80,7 @@ const Dashboard = () => {
 
           {/* 9-3. 마이페이지 버튼 */}
           <button
-            onClick={() => navigate('/myinfo')}
+            onClick={() => navigate('/my-supplements')}
             className="w-full h-24 bg-blue-100 rounded-[40px] flex items-center p-5 relative"
           >
             <div className="w-16 h-16 flex items-center justify-center">
@@ -88,7 +88,7 @@ const Dashboard = () => {
             </div>
             <div className="absolute right-5 w-48 h-16 bg-white rounded-full flex items-center justify-center shadow-md">
               <span className="text-lg font-bold text-gray-800">
-                마이페이지
+                내 영양제 관리
               </span>
             </div>
           </button>

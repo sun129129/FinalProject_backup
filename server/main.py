@@ -1,6 +1,6 @@
 # server/main.py
 from fastapi import FastAPI
-from routers import auth, survey
+from routers import auth, survey, ocr, user_intake
 from fastapi.middleware.cors import CORSMiddleware
 from database import engine, Base
 import models
@@ -11,7 +11,7 @@ sub_app = FastAPI()
 # 이제 모든 라우터와 미들웨어는 'sub_app'에 연결합니다.
 sub_app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8080"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -19,6 +19,9 @@ sub_app.add_middleware(
 # prefix에서 '/api/v1' 부분을 제거했습니다.
 sub_app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 sub_app.include_router(survey.router, prefix="/survey", tags=["Survey"])
+sub_app.include_router(ocr.router, prefix="/ocr", tags=["OCR"])
+sub_app.include_router(user_intake.router, prefix="/user-intake", tags=["User Intake"])
+
 
 # 이 루트 경로는 이제 '/api/v1/'에 해당됩니다.
 @sub_app.get("/")

@@ -1,6 +1,9 @@
 # 1. 베이스 이미지 선택 (경량화된 slim 버전 사용)
 FROM python:3.10-slim
 
+# Tesseract OCR 및 한국어 데이터 설치
+RUN apt-get update && apt-get install -y tesseract-ocr tesseract-ocr-kor && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 # 2. 작업 디렉토리 설정
 WORKDIR /app
 
