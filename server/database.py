@@ -30,7 +30,7 @@ settings = Settings()
 
 # 3. [핵심] DB 연결 '엔진' 만들기 (SQLAlchemy)
 #    이 '엔진'이 DB와 연결되는 실제 통로야.
-engine = create_engine(settings.database_url)
+engine = create_engine(settings.database_url, pool_recycle=3600)
 
 # 4. DB와 대화하는 '세션(창구)' 만들기
 #    API 요청이 올 때마다 이 'SessionLocal'을 사용해서

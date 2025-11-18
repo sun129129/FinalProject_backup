@@ -78,7 +78,7 @@ def get_survey_questions(
         schemas.QuestionWithKeyword(
             question_id=q.question_id,
             question=q.question,
-            keyword_id=kid,
+            question_category=q.question_category,
             keyword_nm=kn
         ) for q, kn, kid in results
     ]

@@ -28,7 +28,7 @@ export const getQuestionsByKeywords = (keywordIds) => {
   const idString = keywordIds.join(',');
 
   // 쿼리 파라미터로 전송
-  return apiClient.get('/survey/questions?ids=${idString}');
+  return apiClient.get(`/survey/questions?ids=${idString}`);
   // (성공 시, [{ question_id: 101, question: "...", keyword_id: 1, keyword_nm: "피로/활력" }, ...])
 };
 

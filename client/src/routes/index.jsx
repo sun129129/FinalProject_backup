@@ -18,6 +18,7 @@ import ResetPassword from '../features/auth/ResetPassword';
 // Dashboard 및 Survey
 import Dashboard from '../features/dashboard/Dashboard';
 import Survey from '../features/survey/Survey';
+import HealthResult from '../features/survey/HealthResult';
 
 // 마이페이지 관련 컴포넌트들 (새로운 경로)
 import MyPage from '../features/mypage/MyPage.jsx';
@@ -44,6 +45,7 @@ const AppRoutes = () => {
            로그인 여부를 체크하는 로직이 추가되어야 합니다. */}
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/survey" element={<Survey />} />
+      <Route path="/survey/result" element={<HealthResult />} />
 
       {/* 🔑 마이페이지 라우트: 중첩 라우트 사용 (Nesting) */}
       {/* /mypage로 접근하면 MyPage가 기본으로 보임 (index) */}

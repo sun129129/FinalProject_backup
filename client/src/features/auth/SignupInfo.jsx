@@ -33,6 +33,46 @@ const GenderToggle = ({ selectedGender, onSelect }) => {
   );
 };
 
+// --- 유효성 검사 도우미 함수 ---
+
+// 1. 생년월일로부터 나이 계산
+const calculateAge = (birthdate) => {
+  const today = new Date();
+  const birthDate = new Date(birthdate);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
+
+// 2. 날짜 유효성 및 14세 이상 확인
+const validateBirthdate = (year, month, day) => {
+  const y = parseInt(year, 10);
+  const m = parseInt(month, 10);
+  const d = parseInt(day, 10);
+
+  if (!y || !m || !d) return '생년월일을 모두 입력해주세요.';
+
+  // 2026년 이후의 연도는 유효하지 않음
+  if (y >= 2026) {
+    return '유효하지 않은 날짜입니다.';
+  }
+
+  const date = new Date(y, m - 1, d);
+  if (date.getFullYear() !== y || date.getMonth() + 1 !== m || date.getDate() !== d) {
+    return '유효하지 않은 날짜입니다.';
+  }
+
+  if (calculateAge(`${y}-${m}-${d}`) < 14) {
+    return '만 14세 이상만 가입할 수 있습니다.';
+  }
+
+  return null; // 유효
+};
+
+
 const SignupInfo = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
@@ -40,7 +80,7 @@ const SignupInfo = () => {
   const [birthYear, setBirthYear] = useState('');
   const [birthMonth, setBirthMonth] = useState('');
   const [birthDay, setBirthDay] = useState('');
-  const [mobileNum, setMobileNum] = useState(''); // 1. 전화번호 state 추가
+  const [mobileNum, setMobileNum] = useState('');
   const [error, setError] = useState(null);
 
   const handleNameChange = (e) => {
@@ -52,33 +92,45 @@ const SignupInfo = () => {
     if (error) setError(null);
   };
   const handleYearChange = (e) => {
-    setBirthYear(e.target.value);
+    setBirthYear(e.target.value.replace(/[^0-9]/g, ''));
     if (error) setError(null);
   };
   const handleMonthChange = (e) => {
-    setBirthMonth(e.target.value);
+    setBirthMonth(e.target.value.replace(/[^0-9]/g, ''));
     if (error) setError(null);
   };
   const handleDayChange = (e) => {
-    setBirthDay(e.target.value);
+    setBirthDay(e.target.value.replace(/[^0-9]/g, ''));
     if (error) setError(null);
   };
-  // 2. 전화번호 핸들러 추가
   const handleMobileNumChange = (e) => {
-    setMobileNum(e.target.value);
+    // 숫자만 남기고 11자리로 제한
+    const numericValue = e.target.value.replace(/[^0-9]/g, '');
+    setMobileNum(numericValue.slice(0, 11));
     if (error) setError(null);
   };
 
   const handleNextStep = (e) => {
     e.preventDefault();
     
-    // 3. 전화번호 유효성 검사 추가
     if (!name || !gender || !birthYear || !birthMonth || !birthDay || !mobileNum) {
       setError('모든 항목을 입력해주세요.');
       return;
     }
+
+    // 생년월일 유효성 검사
+    const birthdateError = validateBirthdate(birthYear, birthMonth, birthDay);
+    if (birthdateError) {
+      setError(birthdateError);
+      return;
+    }
+
+    // 전화번호 유효성 검사
+    if (mobileNum.length !== 11) {
+      setError('전화번호는 11자리여야 합니다.');
+      return;
+    }
     
-    // 4. 전달할 데이터에 전화번호 추가
     const stepOneData = {
       name,
       gender,
@@ -104,13 +156,13 @@ const SignupInfo = () => {
             onChange={handleNameChange}
           />
 
-          {/* 5. 전화번호 입력 필드 추가 */}
           <Input
             label="전화번호"
             type="tel"
             placeholder="'-' 없이 숫자만 입력"
             value={mobileNum}
             onChange={handleMobileNumChange}
+            maxLength="11"
           />
 
           <div className="w-full">
@@ -130,7 +182,7 @@ const SignupInfo = () => {
                 maxLength="4"
                 value={birthYear}
                 onChange={handleYearChange}
-                className="w-full text-center px-3 py-3 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none"
+                className="w-full text-center px-3 py-3 bg-gray-100 border-gray-200 rounded-xl focus:outline-none"
               />
               <input
                 type="tel"
@@ -138,7 +190,7 @@ const SignupInfo = () => {
                 maxLength="2"
                 value={birthMonth}
                 onChange={handleMonthChange}
-                className="w-full text-center px-3 py-3 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none"
+                className="w-full text-center px-3 py-3 bg-gray-100 border-gray-200 rounded-xl focus:outline-none"
               />
               <input
                 type="tel"
@@ -146,7 +198,7 @@ const SignupInfo = () => {
                 maxLength="2"
                 value={birthDay}
                 onChange={handleDayChange}
-                className="w-full text-center px-3 py-3 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none"
+                className="w-full text-center px-3 py-3 bg-gray-100 border-gray-200 rounded-xl focus:outline-none"
               />
             </div>
           </div>

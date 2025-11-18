@@ -89,6 +89,46 @@ def verify_code_and_get_email(db: Session, email: str, code: str, purpose: str):
     
     return db_code.email
 
+
+# --- [추가!] '경비원' 설정 ---
+# React가 HTTP 헤더에 'Authorization: Bearer [토큰]' 
+# 형식으로 토큰을 보내는지 검사할 '규칙'
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
+# --- [추가!] '경비원' 함수 ---
+# API가 호출될 때마다 이 함수가 '토큰'을 해독해서 '로그인한 유저'를 찾아냄
+def get_current_user(
+    token: str = Depends(oauth2_scheme), 
+    db: Session = Depends(get_db)
+):
+    # 1. '자격 증명 실패' 시 보낼 기본 에러
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        # 2. React가 보낸 '토큰'을 '비밀키'로 해독 시도
+        payload = jwt.decode(
+            token, settings.secret_key, algorithms=[settings.algorithm]
+        )
+        # 3. 토큰에서 '이메일'('sub'라는 이름으로 저장했었음) 꺼내기
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        # 해독 실패 (위조됐거나, 만료됐거나...)
+        raise credentials_exception
+    
+    # 4. DB에서 해당 이메일을 가진 'user' 찾기
+    user = get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+        
+    # 5. [성공!] 'user' 객체를 API 함수에 전달
+    return user
+
 # --- API 엔드포인트들 ---
 
 # 16. [API] "인증 코드 발송" (회원가입용)
@@ -105,18 +145,26 @@ async def request_verification_code(
         
     code = "".join(random.choices(string.digits, k=6))
     
-    # 'signup' 목적으로 코드 저장
-    upsert_verification_code(db, email=data.email, code=code, purpose="signup")
+    # # 'signup' 목적으로 코드 저장
+    # upsert_verification_code(db, email=data.email, code=code, purpose="signup")
     
-    try:
-        await send_verification_email(email_to=data.email, code=code)
-        return {"message": "인증 코드가 발송되었습니다."}
-    except Exception as e:
-        print(f"이메일 발송 실패: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="이메일 발송에 실패했습니다."
-        )
+    # try:
+    #     await send_verification_email(email_to=data.email, code=code)
+    #     return {"message": "인증 코드가 발송되었습니다."}
+    # except Exception as e:
+    #     print(f"이메일 발송 실패: {e}")
+    #     raise HTTPException(
+    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         detail="이메일 발송에 실패했습니다."
+    #     )
+
+@router.get("/check-email")
+def check_email_duplication(email: EmailStr, db: Session = Depends(get_db)):
+    """
+    이메일 중복 여부를 확인합니다.
+    """
+    user = get_user_by_email(db, email=email)
+    return {"is_duplicate": user is not None}
 
 # 17. [API] "회원가입" (인증 코드 검증 포함)
 @router.post("/signup", response_model=schemas.User)
@@ -209,41 +257,21 @@ def reset_password(request: schemas.ResetPasswordRequest, db: Session = Depends(
     return {"message": "비밀번호가 성공적으로 재설정되었습니다."}
 
 
-# --- [추가!] '경비원' 설정 ---
-# React가 HTTP 헤더에 'Authorization: Bearer [토큰]' 
-# 형식으로 토큰을 보내는지 검사할 '규칙'
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
-
-
-# --- [추가!] '경비원' 함수 ---
-# API가 호출될 때마다 이 함수가 '토큰'을 해독해서 '로그인한 유저'를 찾아냄
-def get_current_user(
-    token: str = Depends(oauth2_scheme), 
+@router.delete("/me", status_code=status.HTTP_200_OK)
+def delete_current_user(
+    current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    # 1. '자격 증명 실패' 시 보낼 기본 에러
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        # 2. React가 보낸 '토큰'을 '비밀키'로 해독 시도
-        payload = jwt.decode(
-            token, settings.secret_key, algorithms=[settings.algorithm]
+    """
+    현재 로그인된 사용자의 계정을 비활성화합니다 (소프트 삭제).
+    """
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="사용자를 찾을 수 없습니다."
         )
-        # 3. 토큰에서 '이메일'('sub'라는 이름으로 저장했었음) 꺼내기
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
-    except JWTError:
-        # 해독 실패 (위조됐거나, 만료됐거나...)
-        raise credentials_exception
-    
-    # 4. DB에서 해당 이메일을 가진 'user' 찾기
-    user = get_user_by_email(db, email=email)
-    if user is None:
-        raise credentials_exception
-        
-    # 5. [성공!] 'user' 객체를 API 함수에 전달
-    return user
+
+    current_user.is_active = False
+    db.commit()
+
+    return {"message": "회원 탈퇴가 성공적으로 처리되었습니다."}
