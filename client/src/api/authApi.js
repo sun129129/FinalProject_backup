@@ -43,6 +43,14 @@ export const checkEmailDuplicate = async (email) => {
   return apiClient.get(`/auth/check-email?email=${email}`);
 };
 
+/**
+ * [추가] 전화번호 중복 확인
+ * @param {string} mobileNum 
+ */
+export const checkMobileNumDuplicate = async (mobileNum) => {
+  return apiClient.get(`/auth/check-mobile-num?mobile_num=${mobileNum}`);
+};
+
 
 // --- [추가] 아이디/비밀번호 찾기 API ---
 
@@ -86,22 +94,22 @@ export const resetUserPassword = async (email, newPassword) => {
   return apiClient.post('/auth/reset-password', { email, password: newPassword });
 };
 
-/**
- * 6. 이메일 인증 요청
- * @param {string} email 
- */
-export const verifyUserEmail = async (email) => {
-  // (FastAPI 서버에 '/auth/verify-email' 엔드포인트를 만들어야 함!)
-  return apiClient.post('/auth/verify-email', { email });
-};
+// /**
+//  * 6. 이메일 인증 요청
+//  * @param {string} email 
+//  */
+// export const verifyUserEmail = async (email) => {
+//   // (FastAPI 서버에 '/auth/verify-email' 엔드포인트를 만들어야 함!)
+//   return apiClient.post('/auth/verify-email', { email });
+// };
 
-/**
- * 7. [추가!] 이메일 인증 코드 요청
- * @param {string} email 
- */
-export const requestVerificationCode = async (email) => {
-  return apiClient.post('/auth/request-verification', { email });
-};
+// /**
+//  * 7. [추가!] 이메일 인증 코드 요청
+//  * @param {string} email 
+//  */
+// export const requestVerificationCode = async (email) => {
+//   return apiClient.post('/auth/request-verification', { email });
+// };
 
 /**
  * 8. [추가!] 회원 탈퇴 (소프트 삭제)

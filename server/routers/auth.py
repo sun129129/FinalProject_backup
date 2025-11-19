@@ -14,7 +14,7 @@ import string  # 6. 인증 코드 생성을 위해
 from database import get_db, settings # 'settings' (비밀키)
 import models
 import schemas
-from email_utils import send_verification_email # '우체국'
+# from email_utils import send_verification_email # '우체국'
 
 # 8. 'auth' 부서를 위한 라우터(APIRouter)라는 '간판'을 만든다
 router = APIRouter()
@@ -51,43 +51,43 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.user_email == email).first()
 
-# 14. [DB] '인증 코드' 저장/업데이트 함수 (목적'purpose' 포함)
-def upsert_verification_code(db: Session, email: str, code: str, purpose: str):
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=5) # 5분 만료
+# # 14. [DB] '인증 코드' 저장/업데이트 함수 (목적'purpose' 포함)
+# def upsert_verification_code(db: Session, email: str, code: str, purpose: str):
+#     expires_at = datetime.now(timezone.utc) + timedelta(minutes=5) # 5분 만료
     
-    db_code = db.query(models.VerificationCode).filter(
-        models.VerificationCode.email == email,
-        models.VerificationCode.purpose == purpose
-    ).first()
+#     db_code = db.query(models.VerificationCode).filter(
+#         models.VerificationCode.email == email,
+#         models.VerificationCode.purpose == purpose
+#     ).first()
     
-    if db_code:
-        db_code.code = code
-        db_code.expires_at = expires_at
-    else:
-        db_code = models.VerificationCode(
-            email=email, code=code, purpose=purpose, expires_at=expires_at
-        )
-        db.add(db_code)
+#     if db_code:
+#         db_code.code = code
+#         db_code.expires_at = expires_at
+#     else:
+#         db_code = models.VerificationCode(
+#             email=email, code=code, purpose=purpose, expires_at=expires_at
+#         )
+#         db.add(db_code)
     
-    db.commit()
-    db.refresh(db_code)
-    return db_code
+#     db.commit()
+#     db.refresh(db_code)
+#     return db_code
 
-# 15. [DB] '인증 코드' 검증 함수 (목적'purpose' 포함)
-def verify_code_and_get_email(db: Session, email: str, code: str, purpose: str):
-    db_code = db.query(models.VerificationCode).filter(
-        models.VerificationCode.email == email,
-        models.VerificationCode.code == code,
-        models.VerificationCode.purpose == purpose
-    ).first()
+# # 15. [DB] '인증 코드' 검증 함수 (목적'purpose' 포함)
+# def verify_code_and_get_email(db: Session, email: str, code: str, purpose: str):
+#     db_code = db.query(models.VerificationCode).filter(
+#         models.VerificationCode.email == email,
+#         models.VerificationCode.code == code,
+#         models.VerificationCode.purpose == purpose
+#     ).first()
 
-    if not db_code:
-        return None # 코드가 틀리거나 목적이 다름
+#     if not db_code:
+#         return None # 코드가 틀리거나 목적이 다름
 
-    if db_code.expires_at < datetime.now(timezone.utc):
-        return None # 코드가 만료됨
+#     if db_code.expires_at < datetime.now(timezone.utc):
+#         return None # 코드가 만료됨
     
-    return db_code.email
+#     return db_code.email
 
 
 # --- [추가!] '경비원' 설정 ---
@@ -145,26 +145,18 @@ async def request_verification_code(
         
     code = "".join(random.choices(string.digits, k=6))
     
-    # # 'signup' 목적으로 코드 저장
-    # upsert_verification_code(db, email=data.email, code=code, purpose="signup")
+    # 'signup' 목적으로 코드 저장
+    upsert_verification_code(db, email=data.email, code=code, purpose="signup")
     
-    # try:
-    #     await send_verification_email(email_to=data.email, code=code)
-    #     return {"message": "인증 코드가 발송되었습니다."}
-    # except Exception as e:
-    #     print(f"이메일 발송 실패: {e}")
-    #     raise HTTPException(
-    #         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         detail="이메일 발송에 실패했습니다."
-    #     )
-
-@router.get("/check-email")
-def check_email_duplication(email: EmailStr, db: Session = Depends(get_db)):
-    """
-    이메일 중복 여부를 확인합니다.
-    """
-    user = get_user_by_email(db, email=email)
-    return {"is_duplicate": user is not None}
+    try:
+        await send_verification_email(email_to=data.email, code=code)
+        return {"message": "인증 코드가 발송되었습니다."}
+    except Exception as e:
+        print(f"이메일 발송 실패: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="이메일 발송에 실패했습니다."
+        )
 
 # 17. [API] "회원가입" (인증 코드 검증 포함)
 @router.post("/signup", response_model=schemas.User)
@@ -176,15 +168,15 @@ def signup_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
             detail="이미 사용 중인 이메일입니다."
         )
         
-    # # 'signup' 목적으로 코드 검증
-    # verified_email = verify_code_and_get_email(
-    #     db, email=user.email, code=user.verification_code, purpose="signup"
-    # )
-    # if not verified_email:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail="인증 코드가 유효하지 않거나 만료되었습니다."
-    #     )
+    # 'signup' 목적으로 코드 검증
+    verified_email = verify_code_and_get_email(
+        db, email=user.email, code=user.verification_code, purpose="signup"
+    )
+    if not verified_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="인증 코드가 유효하지 않거나 만료되었습니다."
+        )
 
     hashed_password = get_password_hash(user.password)
 

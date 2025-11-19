@@ -9,7 +9,7 @@ import EyeOpenIcon from '../../assets/eye-open.svg';
 import EyeClosedIcon from '../../assets/eye-closed.svg';
 import { signupUser, checkEmailDuplicate } from '../../api/authApi';
 
-const EMAIL_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
+const EMAIL_REGEX = '/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i';
 
 const SignupEmail = () => {
   const navigate = useNavigate();
@@ -70,6 +70,7 @@ const SignupEmail = () => {
     }
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -77,8 +78,12 @@ const SignupEmail = () => {
       setSubmitError('필수 정보(1단계)가 누락되었습니다. 다시 시도해 주세요.');
       return;
     }
-    if (!isEmailChecked) {
+    if (!isEmailChecked) { // 이메일 중복 확인 여부 검사 주석 처리
       setSubmitError('이메일 중복 확인을 완료해주세요.');
+      return;
+    }
+    if (!isEmailFormatValid) { // 이메일 형식 유효성 검사 추가
+      setSubmitError('올바른 이메일 형식으로 작성해 주세요.');
       return;
     }
     if (!isPasswordValid) return setSubmitError('비밀번호는 8자 이상이어야 합니다.');
@@ -121,7 +126,8 @@ const SignupEmail = () => {
     </button>
   );
 
-  const isSubmitDisabled = !isEmailChecked || !isPasswordValid || !isPasswordMatch || !agreed || submitLoading;
+
+  const isSubmitDisabled = !isEmailChecked || !isEmailFormatValid || !isPasswordValid || !isPasswordMatch || !agreed || submitLoading;
 
   return (
     <div className="flex flex-col h-full">

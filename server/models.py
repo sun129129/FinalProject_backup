@@ -22,7 +22,8 @@ class User(Base):
     updated_at = Column(DATETIME, nullable=False, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, nullable=False, default=True) # TINYINT(1)은 Boolean으로 처리
 
-# '인증 코드' 임시 저장 테이블
+# '인증 코드' 임시 저장 테이블 (주석 처리)
+"""
 class VerificationCode(Base):
     __tablename__ = "verification_codes"
 
@@ -32,6 +33,7 @@ class VerificationCode(Base):
     purpose = Column(Enum('signup', 'password_reset', name='purpose_enum'), nullable=False)
     expires_at = Column(TIMESTAMP, nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now())
+"""
 
 # '설문' (질문 목록)
 class Survey(Base):

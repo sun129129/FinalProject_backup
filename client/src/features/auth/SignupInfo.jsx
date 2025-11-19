@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input.jsx';
 import Button from '../../components/common/Button.jsx';
+import { checkMobileNumDuplicate } from '../../api/authApi.js';
 
 const GenderToggle = ({ selectedGender, onSelect }) => {
   return (
@@ -34,8 +35,6 @@ const GenderToggle = ({ selectedGender, onSelect }) => {
 };
 
 // --- 유효성 검사 도우미 함수 ---
-
-// 1. 생년월일로부터 나이 계산
 const calculateAge = (birthdate) => {
   const today = new Date();
   const birthDate = new Date(birthdate);
@@ -47,29 +46,22 @@ const calculateAge = (birthdate) => {
   return age;
 };
 
-// 2. 날짜 유효성 및 14세 이상 확인
 const validateBirthdate = (year, month, day) => {
   const y = parseInt(year, 10);
   const m = parseInt(month, 10);
   const d = parseInt(day, 10);
 
   if (!y || !m || !d) return '생년월일을 모두 입력해주세요.';
-
-  // 2026년 이후의 연도는 유효하지 않음
-  if (y >= 2026) {
-    return '유효하지 않은 날짜입니다.';
-  }
-
+  if (y >= 2026) return '유효하지 않은 날짜입니다.';
+  
   const date = new Date(y, m - 1, d);
   if (date.getFullYear() !== y || date.getMonth() + 1 !== m || date.getDate() !== d) {
     return '유효하지 않은 날짜입니다.';
   }
-
   if (calculateAge(`${y}-${m}-${d}`) < 14) {
     return '만 14세 이상만 가입할 수 있습니다.';
   }
-
-  return null; // 유효
+  return null;
 };
 
 
@@ -81,65 +73,67 @@ const SignupInfo = () => {
   const [birthMonth, setBirthMonth] = useState('');
   const [birthDay, setBirthDay] = useState('');
   const [mobileNum, setMobileNum] = useState('');
-  const [error, setError] = useState(null);
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [formError, setFormError] = useState(null);
 
-  const handleNameChange = (e) => {
-    setName(e.target.value);
-    if (error) setError(null);
+  const handleInputChange = (setter) => (e) => {
+    setter(e.target.value.replace(/[^0-9]/g, ''));
+    if (formError) setFormError(null);
   };
-  const handleGenderSelect = (selectedGender) => {
-    setGender(selectedGender);
-    if (error) setError(null);
-  };
-  const handleYearChange = (e) => {
-    setBirthYear(e.target.value.replace(/[^0-9]/g, ''));
-    if (error) setError(null);
-  };
-  const handleMonthChange = (e) => {
-    setBirthMonth(e.target.value.replace(/[^0-9]/g, ''));
-    if (error) setError(null);
-  };
-  const handleDayChange = (e) => {
-    setBirthDay(e.target.value.replace(/[^0-9]/g, ''));
-    if (error) setError(null);
-  };
+  
   const handleMobileNumChange = (e) => {
-    // 숫자만 남기고 11자리로 제한
     const numericValue = e.target.value.replace(/[^0-9]/g, '');
     setMobileNum(numericValue.slice(0, 11));
-    if (error) setError(null);
+    if (formError) setFormError(null);
   };
 
-  const handleNextStep = (e) => {
+  const handleNextStep = async (e) => {
     e.preventDefault();
+    setFormError(null);
     
+    // 1. 기본 유효성 검사
     if (!name || !gender || !birthYear || !birthMonth || !birthDay || !mobileNum) {
-      setError('모든 항목을 입력해주세요.');
+      setFormError('모든 항목을 입력해주세요.');
       return;
     }
-
-    // 생년월일 유효성 검사
     const birthdateError = validateBirthdate(birthYear, birthMonth, birthDay);
     if (birthdateError) {
-      setError(birthdateError);
+      setFormError(birthdateError);
+      return;
+    }
+    if (mobileNum.length !== 11) {
+      setFormError('전화번호는 11자리여야 합니다.');
       return;
     }
 
-    // 전화번호 유효성 검사
-    if (mobileNum.length !== 11) {
-      setError('전화번호는 11자리여야 합니다.');
-      return;
+    setIsLoading(true);
+    try {
+      // 2. 전화번호 중복 확인 API 호출
+      const response = await checkMobileNumDuplicate(mobileNum);
+      if (response.is_duplicate) {
+        setFormError('이미 가입된 사용자입니다.');
+        setIsLoading(false);
+        return;
+      }
+
+      // 3. 중복이 아닐 경우 다음 단계로 이동
+      const stepOneData = {
+        name,
+        gender,
+        birthdate: `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`,
+        mobileNum,
+      };
+      navigate('/signup/email', { state: { stepOneData } });
+
+    } catch (err) {
+      setFormError('확인 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    const stepOneData = {
-      name,
-      gender,
-      birthdate: `${birthYear}-${birthMonth.padStart(2, '0')}-${birthDay.padStart(2, '0')}`,
-      mobileNum,
-    };
-    
-    navigate('/signup/email', { state: { stepOneData } }); 
   };
+
+  const isNextButtonDisabled = !name || !gender || !birthYear || !birthMonth || !birthDay || !mobileNum || isLoading;
 
   return (
     <div className="flex flex-col h-full">
@@ -153,9 +147,9 @@ const SignupInfo = () => {
             type="text"
             placeholder="이름을 입력해 주세요."
             value={name}
-            onChange={handleNameChange}
+            onChange={(e) => { setName(e.target.value); if (formError) setFormError(null); }}
           />
-
+          
           <Input
             label="전화번호"
             type="tel"
@@ -163,13 +157,17 @@ const SignupInfo = () => {
             value={mobileNum}
             onChange={handleMobileNumChange}
             maxLength="11"
+            error={formError && formError.includes('전화번호') ? formError : null}
           />
 
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               성별
             </label>
-            <GenderToggle selectedGender={gender} onSelect={handleGenderSelect} /> 
+            <GenderToggle 
+              selectedGender={gender} 
+              onSelect={(g) => { setGender(g); if (formError) setFormError(null); }} 
+            /> 
           </div>
           <div className="w-full">
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -181,7 +179,7 @@ const SignupInfo = () => {
                 placeholder="YYYY"
                 maxLength="4"
                 value={birthYear}
-                onChange={handleYearChange}
+                onChange={handleInputChange(setBirthYear)}
                 className="w-full text-center px-3 py-3 bg-gray-100 border-gray-200 rounded-xl focus:outline-none"
               />
               <input
@@ -189,7 +187,7 @@ const SignupInfo = () => {
                 placeholder="MM"
                 maxLength="2"
                 value={birthMonth}
-                onChange={handleMonthChange}
+                onChange={handleInputChange(setBirthMonth)}
                 className="w-full text-center px-3 py-3 bg-gray-100 border-gray-200 rounded-xl focus:outline-none"
               />
               <input
@@ -197,19 +195,19 @@ const SignupInfo = () => {
                 placeholder="DD"
                 maxLength="2"
                 value={birthDay}
-                onChange={handleDayChange}
+                onChange={handleInputChange(setBirthDay)}
                 className="w-full text-center px-3 py-3 bg-gray-100 border-gray-200 rounded-xl focus:outline-none"
               />
             </div>
           </div>
           
-          {error && (
-            <p className="text-red-500 text-sm text-center -mt-2">{error}</p>
+          {formError && (
+            <p className="text-red-500 text-sm text-center -mt-2">{formError}</p>
           )}
 
           <div className="mt-4">
-            <Button type="submit" variant="form">
-              다음
+            <Button type="submit" variant="form" disabled={isNextButtonDisabled}>
+              {isLoading ? '확인 중...' : '다음'}
             </Button>
           </div>
         </form>
