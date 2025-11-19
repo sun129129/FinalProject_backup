@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import HeaderWithBack from '../../components/common/HeaderWithBack';
 import Input from '../../components/common/Input.jsx';
+import InputWithButton from '../../components/common/InputWithButton.jsx';
 import Checkbox from '../../components/common/Checkbox.jsx';
 import Button from '../../components/common/Button.jsx';
 import EyeOpenIcon from '../../assets/eye-open.svg';
 import EyeClosedIcon from '../../assets/eye-closed.svg';
-import { signupUser } from '../../api/authApi';
+import { signupUser, checkEmailDuplicate } from '../../api/authApi';
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
 
 const SignupEmail = () => {
   const navigate = useNavigate();
@@ -18,14 +21,54 @@ const SignupEmail = () => {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [agreed, setAgreed] = useState(false);
   
+  // --- 이메일 유효성 검사 상태 ---
+  const [emailError, setEmailError] = useState(null);
+  const [isEmailChecked, setIsEmailChecked] = useState(false); // 중복 확인 버튼 눌렀는지
+  const [isDuplicateCheckLoading, setIsDuplicateCheckLoading] = useState(false);
+
+  const isEmailFormatValid = useMemo(() => EMAIL_REGEX.test(email), [email]);
+  
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState(null);
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+  const isPasswordValid = password.length >= 8;
   const isPasswordMatch = password.length > 0 && password === passwordConfirm;
   const isPasswordMismatch = passwordConfirm.length > 0 && password !== passwordConfirm;
   const validationError = isPasswordMismatch ? '비밀번호가 일치하지 않습니다.' : null;
+
+  const handleEmailChange = (e) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setIsEmailChecked(false); // 이메일 변경 시 중복 확인 상태 초기화
+    setEmailError(null);
+    setSubmitError(null);
+  };
+
+  const handleCheckDuplicate = async () => {
+    if (!isEmailFormatValid) {
+      setEmailError('유효한 이메일 형식이 아닙니다.');
+      return;
+    }
+    setIsDuplicateCheckLoading(true);
+    setEmailError(null);
+    try {
+      const response = await checkEmailDuplicate(email);
+      if (response.is_duplicate) {
+        setEmailError('이미 가입된 사용자입니다.');
+        setIsEmailChecked(false);
+      } else {
+        setEmailError(null);
+        setIsEmailChecked(true); // 사용 가능한 이메일로 확인됨
+      }
+    } catch (err) {
+      setEmailError('중복 확인 중 오류가 발생했습니다.');
+      setIsEmailChecked(false);
+    } finally {
+      setIsDuplicateCheckLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +77,11 @@ const SignupEmail = () => {
       setSubmitError('필수 정보(1단계)가 누락되었습니다. 다시 시도해 주세요.');
       return;
     }
-    
+    if (!isEmailChecked) {
+      setSubmitError('이메일 중복 확인을 완료해주세요.');
+      return;
+    }
+    if (!isPasswordValid) return setSubmitError('비밀번호는 8자 이상이어야 합니다.');
     if (!isPasswordMatch) return setSubmitError('비밀번호가 일치하지 않습니다.');
     if (!agreed) return setSubmitError('약관에 동의해야 합니다.');
     
@@ -42,7 +89,6 @@ const SignupEmail = () => {
     setSubmitError(null);
 
     try {
-      // 백엔드 스키마에 맞게 필드명을 수정하여 전송
       const fullUserData = {
         user_name: stepOneData.name,
         user_email: email,
@@ -58,7 +104,7 @@ const SignupEmail = () => {
       navigate('/login');
 
     } catch (err) {
-      setSubmitError(err.message || '가입에 실패했습니다.');
+      setSubmitError(err.response?.data?.detail || err.message || '가입에 실패했습니다.');
     } finally {
       setSubmitLoading(false);
     }
@@ -66,14 +112,16 @@ const SignupEmail = () => {
   
   const passwordVisibilityToggle = (
     <button type="button" onClick={() => setIsPasswordVisible(!isPasswordVisible)} aria-label="비밀번호 보기 토글">
-      <img src={isPasswordVisible ? EyeClosedIcon : EyeOpenIcon} alt="Toggle" className="w-5 h-5" />
+      <img src={isPasswordVisible ? EyeOpenIcon : EyeClosedIcon} alt="Toggle" className="w-5 h-5" />
     </button>
   );
   const confirmVisibilityToggle = (
     <button type="button" onClick={() => setIsConfirmVisible(!isConfirmVisible)} aria-label="비밀번호 확인 보기 토글">
-      <img src={isConfirmVisible ? EyeClosedIcon : EyeOpenIcon} alt="Toggle" className="w-5 h-5" />
+      <img src={isConfirmVisible ? EyeOpenIcon : EyeClosedIcon} alt="Toggle" className="w-5 h-5" />
     </button>
   );
+
+  const isSubmitDisabled = !isEmailChecked || !isPasswordValid || !isPasswordMatch || !agreed || submitLoading;
 
   return (
     <div className="flex flex-col h-full">
@@ -82,16 +130,23 @@ const SignupEmail = () => {
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           
           <div>
-            <Input
+            <InputWithButton
               label="이메일 주소"
               type="email"
               placeholder="이메일을 입력해 주세요."
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={submitLoading}
-              error={submitError}
-              rightAccessory={null}
+              onChange={handleEmailChange}
+              disabled={submitLoading || isDuplicateCheckLoading}
+              error={emailError}
+              buttonText={isDuplicateCheckLoading ? '확인 중...' : '중복 확인'}
+              onButtonClick={handleCheckDuplicate}
+              buttonDisabled={!isEmailFormatValid || submitLoading || isDuplicateCheckLoading}
             />
+            {isEmailChecked && (
+              <p className="text-green-600 text-sm mt-1.5">
+                사용 가능한 이메일입니다. ✅
+              </p>
+            )}
           </div>
           
           <Input
@@ -114,7 +169,7 @@ const SignupEmail = () => {
               disabled={submitLoading}
               error={validationError}
             />
-            {isPasswordMatch && (
+            {isPasswordMatch && isPasswordValid && (
               <p className="text-green-600 text-sm mt-1.5">
                 비밀번호가 일치합니다. ✅
               </p>
@@ -131,11 +186,15 @@ const SignupEmail = () => {
             </Checkbox>
           </div>
           
+          {submitError && (
+            <p className="text-red-500 text-sm text-center">{submitError}</p>
+          )}
+
           <div className="mt-4">
             <Button 
               type="submit" 
               variant="form"
-              disabled={!isPasswordMatch || !agreed || submitLoading}
+              disabled={isSubmitDisabled}
             >
               {submitLoading ? '가입 중...' : '동의하고 가입하기'}
             </Button>

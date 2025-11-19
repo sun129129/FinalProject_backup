@@ -35,6 +35,14 @@ export const signupUser = async (userData) => {
   // (성공 시, { id: 1, email: "...", ... } 같은 User 객체를 반환)
 };
 
+/**
+ * [추가] 이메일 중복 확인
+ * @param {string} email 
+ */
+export const checkEmailDuplicate = async (email) => {
+  return apiClient.get(`/auth/check-email?email=${email}`);
+};
+
 
 // --- [추가] 아이디/비밀번호 찾기 API ---
 
@@ -93,4 +101,11 @@ export const verifyUserEmail = async (email) => {
  */
 export const requestVerificationCode = async (email) => {
   return apiClient.post('/auth/request-verification', { email });
+};
+
+/**
+ * 8. [추가!] 회원 탈퇴 (소프트 삭제)
+ */
+export const deleteAccount = async () => {
+  return apiClient.delete('/auth/me');
 };
