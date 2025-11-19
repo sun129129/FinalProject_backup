@@ -13,17 +13,16 @@ import userIcon from '../../assets/user.svg';
 // DUMMY_INTERESTS 데이터의 아이콘 경로를 파일 이름만 갖도록 수정
 const DUMMY_INTERESTS = [
   { id: "cognitive", name: "인지기능/기억력", icon_name: "brain.png" },
-  { id: "tension", name: "긴장", icon_name: "tension.png" },
+  { id: "tension", name: "긴장/스트레스", icon_name: "tension.png" },
   { id: "sleep", name: "수면의 질", icon_name: "sleep.png" },
   { id: "fatigue", name: "피로", icon_name: "fatigue.png" },
-  { id: "dental", name: "치아", icon_name: "dental.png" },
+  { id: "dental", name: "구강/치아", icon_name: "dental.png" },
   { id: "eye", name: "눈", icon_name: "eye.png" },
   { id: "skin", name: "피부", icon_name: "skin.png" },
   { id: "liver", name: "간", icon_name: "liver.png" },
   { id: "stomach", name: "위", icon_name: "stomach.png" },
   { id: "gut", name: "장", icon_name: "gut.png" },
   { id: "bodyfat", name: "체지방", icon_name: "bodyfat.png" },
-  { id: "calcium", name: "칼슘흡수", icon_name: "calcium.png" },
   { id: "bloodsugar", name: "혈당", icon_name: "bloodsugar.png" },
   { id: "menopause_f", name: "갱년기 여성", icon_name: "f_menopause.png" },
   { id: "menopause_m", name: "갱년기 남성", icon_name: "m_menopause.png" },
@@ -37,10 +36,11 @@ const DUMMY_INTERESTS = [
   { id: "bone", name: "뼈", icon_name: "bone.png" },
   { id: "muscle", name: "근력", icon_name: "muscle.png" },
   { id: "exercise", name: "운동수행능력", icon_name: "exercise.png" },
-  { id: "pms", name: "월경 전 불편한 상태", icon_name: "pms.png" },
   { id: "prostate", name: "전립선", icon_name: "prostate.png" },
   { id: "urination", name: "배뇨", icon_name: "urination.png" },
   { id: "urinary", name: "요로", icon_name: "urinary.png" },
+  { id: "pms", name: "월경 전 불편한 상태", icon_name: "pms.png" },
+  { id: "calcium", name: "칼슘흡수", icon_name: "calcium.png" }
 ];
 
 // O/△/X 아이콘 컴포넌트

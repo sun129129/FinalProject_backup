@@ -12,12 +12,13 @@ WORKDIR /app
 COPY ./requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 4. 소스코드 복사
-COPY . .
+# 4. 소스코드 복사 (리팩토링된 구조에 맞게 변경)
+COPY ./main.py ./
+COPY ./app ./app
 
 # 5. 서버가 사용할 포트 지정
 EXPOSE 8000
 
-# 6. 서버 실행 명령어
+# 6. 서버 실행 명령어 (리팩토링된 진입점에 맞게 변경)
 # 0.0.0.0 호스트를 사용해야 컨테이너 외부에서 접근 가능합니다.
-CMD ["uvicorn", "main:main_app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
