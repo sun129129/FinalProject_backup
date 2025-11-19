@@ -32,3 +32,11 @@ def create_user(db: Session, user: UserCreate) -> User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def delete_user(db: Session, user: User):
+    """
+    사용자를 데이터베이스에서 삭제합니다.
+    """
+    db.delete(user)
+    db.commit()
+    return user

@@ -17,15 +17,15 @@ app = FastAPI(
 # CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to WonCare API"}
+# @app.get("/")
+# def read_root():
+#     return {"message": "Welcome to WonCare API"}
 
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
