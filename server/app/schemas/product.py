@@ -26,14 +26,3 @@ class ProductSchema(BaseModel):
 
     class Config:
         from_attributes = True
-
-class UserIntakeCreate(BaseModel):
-    prdlst_report_no: int
-
-class UserIntakeSchema(BaseModel):
-    intake_id: int
-    created_at: datetime
-    product: ProductSchema
-
-    class Config:
-        from_attributes = True

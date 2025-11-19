@@ -29,15 +29,4 @@ class Product(Base):
     NAVER_RANK = Column(Integer, nullable=True)
     INDEX_LAST_UPDATED = Column(DATETIME, nullable=True)
 
-# '사용자 섭취 기록' 테이블
-class UserIntake(Base):
-    __tablename__ = "user_intake"
-
-    intake_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
-    prdlst_report_no = Column(Integer, ForeignKey("product.PRDLST_REPORT_NO", ondelete="CASCADE", onupdate="CASCADE"), nullable=False)
-    created_at = Column(DATETIME, server_default=func.now())
-
-    # Relationships
-    user = relationship("app.db.models.user.User") # 경로 수정
-    product = relationship("Product")
+    takers = relationship("UserSupplement", back_populates="product")

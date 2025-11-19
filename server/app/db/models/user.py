@@ -2,6 +2,7 @@ from sqlalchemy import (
     Column, Integer, String, Boolean, Enum, TIMESTAMP,
     DATETIME, CHAR
 )
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base  # 경로 수정
 
@@ -19,6 +20,8 @@ class User(Base):
     created_at = Column(DATETIME, nullable=False, server_default=func.now())
     updated_at = Column(DATETIME, nullable=False, server_default=func.now(), onupdate=func.now())
     is_active = Column(Boolean, nullable=False, default=True) # TINYINT(1)은 Boolean으로 처리
+
+    supplements = relationship("UserSupplement", back_populates="user")
 
 # '인증 코드' 임시 저장 테이블
 class VerificationCode(Base):
