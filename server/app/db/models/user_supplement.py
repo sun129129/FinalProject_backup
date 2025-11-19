@@ -3,7 +3,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.db.base_class import Base
+from app.core.database import Base
 
 class UserSupplement(Base):
     __tablename__ = "user_supplement"
