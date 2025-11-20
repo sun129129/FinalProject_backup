@@ -76,7 +76,7 @@ def check_mobile_num_duplicate(
     """
     휴대폰 번호 중복 확인
     """
-    user = crud_user.get_user_by_mobile_num(db, mobile_num=mobile_num)
+    user = user_service.get_user_by_mobile_num(db, mobile_num=mobile_num)
     if user:
         return {"is_duplicate": True}
     return {"is_duplicate": False}

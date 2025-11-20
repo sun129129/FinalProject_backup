@@ -102,7 +102,7 @@ const SignupInfo = () => {
     const numericValue = e.target.value.replace(/[^0-9]/g, '');
     setMobileNum(numericValue.slice(0, 11));
     if (error) setError(null);
-  
+  };
 
   const handleNextStep = async (e) => {
     e.preventDefault();
@@ -230,7 +230,6 @@ const SignupInfo = () => {
       </div>
     </div>
   );
-};
 };
 
 export default SignupInfo;
