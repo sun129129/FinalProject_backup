@@ -10,37 +10,38 @@ import {
 } from '../../api/surveyApi';
 import userIcon from '../../assets/user.svg';
 
-// DUMMY_INTERESTS 데이터의 아이콘 경로를 파일 이름만 갖도록 수정
+// [수정됨] DB 순서(1~29)와 명칭(치아, 긴장 등)에 완벽하게 맞춘 데이터
+// 백엔드에서 keyword_id: 1이 오면 -> "인지기능/기억력" 매칭 -> brain.png 표시
 const DUMMY_INTERESTS = [
-  { id: "cognitive", name: "인지기능/기억력", icon_name: "brain.png" },
-  { id: "tension", name: "긴장/스트레스", icon_name: "tension.png" },
-  { id: "sleep", name: "수면의 질", icon_name: "sleep.png" },
-  { id: "fatigue", name: "피로", icon_name: "fatigue.png" },
-  { id: "dental", name: "구강/치아", icon_name: "dental.png" },
-  { id: "eye", name: "눈", icon_name: "eye.png" },
-  { id: "skin", name: "피부", icon_name: "skin.png" },
-  { id: "liver", name: "간", icon_name: "liver.png" },
-  { id: "stomach", name: "위", icon_name: "stomach.png" },
-  { id: "gut", name: "장", icon_name: "gut.png" },
-  { id: "bodyfat", name: "체지방", icon_name: "bodyfat.png" },
-  { id: "bloodsugar", name: "혈당", icon_name: "bloodsugar.png" },
-  { id: "menopause_f", name: "갱년기 여성", icon_name: "f_menopause.png" },
-  { id: "menopause_m", name: "갱년기 남성", icon_name: "m_menopause.png" },
-  { id: "triglyceride", name: "혈중 중성지방", icon_name: "triglyceride.png" },
-  { id: "cholesterol", name: "콜레스테롤", icon_name: "cholesterol.png" },
-  { id: "bloodpressure", name: "혈압", icon_name: "bloodpressure.png" },
-  { id: "circulation", name: "혈행", icon_name: "circulation.png" },
-  { id: "immunity", name: "면역", icon_name: "immunity.png" },
-  { id: "antioxidant", name: "항산화", icon_name: "antioxidant.png" },
-  { id: "joint", name: "관절", icon_name: "joint.png" },
-  { id: "bone", name: "뼈", icon_name: "bone.png" },
-  { id: "muscle", name: "근력", icon_name: "muscle.png" },
-  { id: "exercise", name: "운동수행능력", icon_name: "exercise.png" },
-  { id: "prostate", name: "전립선", icon_name: "prostate.png" },
-  { id: "urination", name: "배뇨", icon_name: "urination.png" },
-  { id: "urinary", name: "요로", icon_name: "urinary.png" },
-  { id: "pms", name: "월경 전 불편한 상태", icon_name: "pms.png" },
-  { id: "calcium", name: "칼슘흡수", icon_name: "calcium.png" }
+  { id: "cognitive", name: "인지기능/기억력", icon_name: "brain.png" },       // 1
+  { id: "fatigue", name: "피로", icon_name: "fatigue.png" },                 // 2
+  { id: "menopause_f", name: "갱년기 여성", icon_name: "f_menopause.png" },  // 3
+  { id: "circulation", name: "혈행", icon_name: "circulation.png" },         // 4
+  { id: "immunity", name: "면역", icon_name: "immunity.png" },               // 5
+  { id: "antioxidant", name: "항산화", icon_name: "antioxidant.png" },       // 6
+  { id: "gut", name: "장", icon_name: "gut.png" },                           // 7
+  { id: "cholesterol", name: "콜레스테롤", icon_name: "cholesterol.png" },   // 8
+  { id: "bone", name: "뼈", icon_name: "bone.png" },                         // 9
+  { id: "joint", name: "관절", icon_name: "joint.png" },                     // 10
+  { id: "stomach", name: "위", icon_name: "stomach.png" },                   // 11
+  { id: "skin", name: "피부", icon_name: "skin.png" },                       // 12
+  { id: "liver", name: "간", icon_name: "liver.png" },                       // 13
+  { id: "eye", name: "눈", icon_name: "eye.png" },                           // 14
+  { id: "bloodsugar", name: "혈당", icon_name: "bloodsugar.png" },           // 15
+  { id: "bodyfat", name: "체지방", icon_name: "bodyfat.png" },               // 16
+  { id: "dental", name: "치아", icon_name: "dental.png" },                   // 17
+  { id: "tension", name: "긴장", icon_name: "tension.png" },                 // 18
+  { id: "calcium", name: "칼슘흡수", icon_name: "calcium.png" },             // 19
+  { id: "triglyceride", name: "혈중 중성지방", icon_name: "triglyceride.png" }, // 20
+  { id: "bloodpressure", name: "혈압", icon_name: "bloodpressure.png" },     // 21
+  { id: "prostate", name: "전립선", icon_name: "prostate.png" },             // 22
+  { id: "exercise", name: "운동수행능력", icon_name: "exercise.png" },       // 23
+  { id: "pms", name: "월경 전 불편한 상태", icon_name: "pms.png" },          // 24
+  { id: "menopause_m", name: "갱년기 남성", icon_name: "m_menopause.png" },  // 25
+  { id: "muscle", name: "근력", icon_name: "muscle.png" },                   // 26
+  { id: "sleep", name: "수면의 질", icon_name: "sleep.png" },                // 27
+  { id: "urinary", name: "요로", icon_name: "urinary.png" },                 // 28
+  { id: "urination", name: "배뇨", icon_name: "urination.png" }              // 29
 ];
 
 // O/△/X 아이콘 컴포넌트
@@ -74,19 +75,23 @@ const Survey = () => {
     if (!user) navigate('/login', { replace: true });
   }, [user, navigate]);
 
+  // 키워드 목록 불러오기 및 아이콘 매핑
   useEffect(() => {
     if (user) {
       const fetchAndCombineKeywords = async () => {
         try {
           setListLoading(true);
+          // 1. 백엔드에서 키워드 리스트(id, name)를 가져옴
           const backendKeywords = await getKeywordList();
           
+          // 2. 프론트엔드의 아이콘 데이터와 이름을 기준으로 매핑
           const interestMap = new Map(DUMMY_INTERESTS.map(item => [item.name, item]));
 
           const combinedKeywords = (backendKeywords || []).map(dbKeyword => {
             const frontendData = interestMap.get(dbKeyword.keyword_nm);
             return {
-              ...dbKeyword,
+              ...dbKeyword, // keyword_id, keyword_nm 포함됨
+              // 매핑되는 아이콘이 없으면 기본값 사용
               id: frontendData ? frontendData.id : dbKeyword.keyword_nm,
               icon_name: frontendData ? frontendData.icon_name : 'default.png',
             };
@@ -94,6 +99,7 @@ const Survey = () => {
 
           setKeywordList(combinedKeywords);
         } catch (err) {
+          console.error(err);
           setError(err.response?.data?.detail || err.message || '키워드를 불러오는 데 실패했습니다.');
           setKeywordList([]);
         } finally {
@@ -118,6 +124,9 @@ const Survey = () => {
     });
   };
 
+  // [질문 불러오기 로직]
+  // 프론트는 keyword_id (예: 1, 2)를 보냅니다.
+  // 백엔드는 이 ID를 받아서 관련된 질문(예: 101~105, 201~205)을 찾아서 돌려줍니다.
   const handleSubmitKeywords = async () => {
     if (selectedKeywords.length === 0) {
       setError('1개 이상 선택해 주세요.');
@@ -126,8 +135,12 @@ const Survey = () => {
     setQuestionLoading(true);
     setError(null);
     try {
+      // 선택된 키워드의 ID만 추출 (예: [1, 18])
       const ids = selectedKeywords.map((k) => k.keyword_id);
+      
+      // API 호출: 백엔드가 1번->100번대, 18번->1800번대 질문을 찾아서 줌
       const questions = await getQuestionsByKeywords(ids);
+      
       if (!questions || questions.length === 0) {
         setError('선택한 키워드에 해당하는 질문이 없습니다.');
         setQuestionLoading(false);
@@ -170,9 +183,7 @@ const Survey = () => {
     }
   };
 
-  // Vite에서 src 내부의 이미지를 동적으로 가져오는 함수
   const getImageUrl = (name) => {
-    // new URL(상대경로, import.meta.url) 패턴을 사용합니다.
     return new URL(`./icons/${name}`, import.meta.url).href;
   };
 
@@ -199,7 +210,6 @@ const Survey = () => {
                   className={`h-28 rounded-2xl flex flex-col items-center justify-center p-2 text-center font-semibold transition-all gap-2
                     ${isSelected ? 'bg-blue-500 text-white shadow-lg' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'}`}
                 >
-                  {/* getImageUrl 함수를 사용하여 동적으로 이미지 경로를 생성 */}
                   <img src={getImageUrl(keyword.icon_name)} alt={keyword.keyword_nm} className="w-8 h-8" />
                   <span className="text-xs">{keyword.keyword_nm}</span>
                 </button>
