@@ -9,7 +9,8 @@ import EyeOpenIcon from '../../assets/eye-open.svg';
 import EyeClosedIcon from '../../assets/eye-closed.svg';
 import { signupUser, checkEmailDuplicate } from '../../api/authApi';
 
-const EMAIL_REGEX = '/^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i';
+// Keep as RegExp so `test` works during validation
+const EMAIL_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
 
 const SignupEmail = () => {
   const navigate = useNavigate();
