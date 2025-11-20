@@ -38,7 +38,20 @@ def login_for_access_token(
         "user": user
     }
 
-@router.post("/signup", response_model=user_schema.User)
+@router.get("/check-email", status_code=status.HTTP_200_OK)
+def check_email_exists(
+    email: str,
+    db: Session = Depends(deps.get_db)
+):
+    """
+    이메일이 이미 존재하는지 확인
+    """
+    user = crud_user.get_user_by_email(db, email=email)
+    if user:
+        return {"is_duplicate": True}
+    return {"is_duplicate": False}
+
+@router.post("/signup", response_model=user_schema.UserResponse)
 def signup_user(
     user_in: user_schema.UserCreate,
     db: Session = Depends(deps.get_db)
@@ -121,3 +134,5 @@ def reset_password(
     db.commit()
 
     return {"message": "비밀번호가 성공적으로 재설정되었습니다."}
+
+

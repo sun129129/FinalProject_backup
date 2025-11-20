@@ -11,7 +11,7 @@
 def read_root():
     return {"message": "안녕하세요??? WonCare API v1 ??서버입니다??"}
 4. taskkill
-5. uvicorn main:main_app --reload
+5. uvicorn main:app --reload
 ## FN
 0. npm 설치 (링크: https://nodejs.org/ko/download)
 1. cd client
