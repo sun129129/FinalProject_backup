@@ -43,7 +43,7 @@ const Dashboard = () => {
       <div className="flex-grow p-6 flex flex-col items-center mt-4">
         {/* 8. 메인 타이틀 변경 */}
         <h2 className="text-3xl font-bold mb-12 text-center leading-snug">
-          우리만의 건강 케어를
+          <span className="text-blue-800">우리</span>만의 건강 케어를
           <br />
           원한다면?
         </h2>

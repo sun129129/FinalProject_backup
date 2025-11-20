@@ -15,6 +15,12 @@ def get_user_by_name_and_birthdate(db: Session, name: str, birthdate: str) -> Us
     """
     return db.query(User).filter(User.user_name == name, User.birthdate == birthdate).first()
 
+def get_user_by_mobile_num(db: Session, mobile_num: str) -> User:
+    """
+    휴대폰 번호로 사용자를 조회합니다.
+    """
+    return db.query(User).filter(User.mobile_num == mobile_num).first()
+
 def create_user(db: Session, user: UserCreate) -> User:
     """
     새로운 사용자를 생성합니다.
@@ -32,3 +38,11 @@ def create_user(db: Session, user: UserCreate) -> User:
     db.commit()
     db.refresh(db_user)
     return db_user
+
+def delete_user(db: Session, user: User):
+    """
+    사용자를 데이터베이스에서 삭제합니다.
+    """
+    db.delete(user)
+    db.commit()
+    return user

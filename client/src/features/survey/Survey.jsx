@@ -163,7 +163,7 @@ const Survey = () => {
     try {
       await submitSurveyAnswers(formattedAnswers);
       alert('설문이 성공적으로 제출되었습니다. 결과를 분석합니다.');
-      navigate('/recommendations');
+      navigate('/loading-report');
     } catch (err) {
       setError(err.response?.data?.detail || err.message || '제출에 실패했습니다.');
       setSubmitLoading(false);

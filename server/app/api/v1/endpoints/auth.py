@@ -55,6 +55,19 @@ def signup_user(
     user = crud_user.create_user(db=db, user=user_in)
     return user
 
+@router.get("/check-mobile-num")
+def check_mobile_num_duplicate(
+    mobile_num: str,
+    db: Session = Depends(deps.get_db)
+):
+    """
+    휴대폰 번호 중복 확인
+    """
+    user = crud_user.get_user_by_mobile_num(db, mobile_num=mobile_num)
+    if user:
+        return {"is_duplicate": True}
+    return {"is_duplicate": False}
+
 @router.post("/request-verification", status_code=status.HTTP_200_OK)
 async def request_verification_code(
     data: auth_schema.EmailRequest, 
