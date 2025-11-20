@@ -9,8 +9,8 @@ from app.core import security
 from app.core.config import settings
 from app.schemas import auth as auth_schema
 from app.schemas import user as user_schema
-from app.crud import crud_user, crud_verification
-from app.services import email_service
+from app.crud import crud_verification
+from app.services import email_service, user_service # crud_user 대신 user_service 임포트
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ def login_for_access_token(
     """
     OAuth2 호환 로그인, 액세스 토큰 반환
     """
-    user = crud_user.get_user_by_email(db, email=form_data.username)
+    user = user_service.get_user_by_email(db, email=form_data.username) # user_service 사용
     if not user or not security.verify_password(form_data.password, user.hashed_password) or not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -38,7 +38,20 @@ def login_for_access_token(
         "user": user
     }
 
-@router.post("/signup", response_model=user_schema.User)
+@router.get("/check-email", status_code=status.HTTP_200_OK)
+def check_email_exists(
+    email: str,
+    db: Session = Depends(deps.get_db)
+):
+    """
+    이메일이 이미 존재하는지 확인
+    """
+    user = user_service.get_user_by_email(db, email=email) # user_service 사용
+    if user:
+        return {"is_duplicate": True}
+    return {"is_duplicate": False}
+
+@router.post("/signup", response_model=user_schema.UserResponse, status_code=status.HTTP_201_CREATED)
 def signup_user(
     user_in: user_schema.UserCreate,
     db: Session = Depends(deps.get_db)
@@ -46,13 +59,13 @@ def signup_user(
     """
     새로운 사용자 회원가입
     """
-    user = crud_user.get_user_by_email(db, email=user_in.user_email)
+    user = user_service.get_user_by_email(db, email=user_in.user_email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="이미 사용 중인 이메일입니다.",
         )
-    user = crud_user.create_user(db=db, user=user_in)
+    user = user_service.create_user(db=db, user=user_in) # user_service 사용
     return user
 
 @router.get("/check-mobile-num")
@@ -76,7 +89,7 @@ async def request_verification_code(
     """
     회원가입을 위한 이메일 인증 코드 발송
     """
-    if crud_user.get_user_by_email(db, email=data.email):
+    if user_service.get_user_by_email(db, email=data.email): # user_service 사용
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="이미 사용 중인 이메일입니다."
@@ -95,42 +108,43 @@ async def request_verification_code(
             detail="이메일 발송에 실패했습니다."
         )
 
-@router.post("/find-id", response_model=auth_schema.EmailRequest)
-def find_id(
-    request: auth_schema.FindIdRequest, 
-    db: Session = Depends(deps.get_db)
-):
-    """
-    이름과 생년월일로 이메일 아이디 찾기
-    """
-    user = crud_user.get_user_by_name_and_birthdate(
-        db, name=request.user_name, birthdate=request.birthdate
-    )
+# @router.post("/find-id", response_model=auth_schema.EmailRequest)
+# def find_id(
+#     request: auth_schema.FindIdRequest, 
+#     db: Session = Depends(deps.get_db)
+# ):
+#     """
+#     이름과 생년월일로 이메일 아이디 찾기
+#     """
+#     user = crud_user.get_user_by_name_and_birthdate(
+#         db, name=request.user_name, birthdate=request.birthdate
+#     )
 
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="일치하는 사용자가 없습니다."
-        )
-    return {"user_email": user.user_email}
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="일치하는 사용자가 없습니다."
+#         )
+#     return {"user_email": user.user_email}
 
-@router.post("/reset-password", status_code=status.HTTP_200_OK)
-def reset_password(
-    request: auth_schema.ResetPasswordRequest, 
-    db: Session = Depends(deps.get_db)
-):
-    """
-    비밀번호 재설정
-    """
-    user = crud_user.get_user_by_email(db, email=request.email)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="사용자를 찾을 수 없습니다."
-        )
+# @router.post("/reset-password", status_code=status.HTTP_200_OK)
+# def reset_password(
+#     request: auth_schema.Reset_password, 
+#     db: Session = Depends(deps.get_db)
+# ):
+#     """
+#     비밀번호 재설정
+#     """
+#     user = crud_user.get_user_by_email(db, email=request.email)
+#     if not user:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND,
+#             detail="사용자를 찾을 수 없습니다."
+#         )
 
-    hashed_password = security.get_password_hash(request.password)
-    user.hashed_password = hashed_password
-    db.commit()
+#     hashed_password = security.get_password_hash(request.password)
+#     user.hashed_password = hashed_password
+#     db.commit()
 
-    return {"message": "비밀번호가 성공적으로 재설정되었습니다."}
+#     return {"message": "비밀번호가 성공적으로 재설정되었습니다."}
+

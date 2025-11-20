@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
-from .user import User # user 스키마 import
+from .user import UserResponse as User # user 스키마 import
 
 # --- Token (로그인 토큰) 및 인증 관련 스키마 ---
 class Token(BaseModel):
@@ -26,3 +26,5 @@ class FindPasswordRequest(BaseModel):
 class ResetPasswordRequest(BaseModel):
     email: EmailStr
     password: str
+
+

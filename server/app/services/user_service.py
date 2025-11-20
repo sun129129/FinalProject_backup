@@ -1,12 +1,12 @@
+# app/services/user_service.py
+
 from sqlalchemy.orm import Session
 from app.db.models.user import User
 from app.schemas.user import UserCreate
 from app.core.security import get_password_hash
 
-def get_user_by_email(db: Session, email: str) -> User:
-    """
-    이메일로 사용자를 조회합니다.
-    """
+# 이메일로 유저 찾기
+def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.user_email == email).first()
 
 def get_user_by_name_and_birthdate(db: Session, name: str, birthdate: str) -> User:
@@ -26,14 +26,17 @@ def create_user(db: Session, user: UserCreate) -> User:
     새로운 사용자를 생성합니다.
     """
     hashed_password = get_password_hash(user.password)
+    
     db_user = User(
         user_email=user.user_email,
+        hashed_password=hashed_password,
         user_name=user.user_name,
         gender=user.gender,
         birthdate=user.birthdate,
         mobile_num=user.mobile_num,
-        hashed_password=hashed_password,
+        is_active=True
     )
+    
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

@@ -16,4 +16,4 @@ class UserSupplementSchema(BaseModel):
     # product: ProductSchema # Include product details if needed
 
     class Config:
-        orm_mode = True
+        from_attributes = True
