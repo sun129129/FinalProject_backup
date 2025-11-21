@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import loadingBeeImage from '../../assets/loading-bee.png';
+import loadingBeeImage from './health-wibee/loading_wibee.png';
 
 function LoadingReport() {
   const navigate = useNavigate();
@@ -8,7 +8,7 @@ function LoadingReport() {
   useEffect(() => {
     // Simulate API call or data processing delay
     const timer = setTimeout(() => {
-      navigate('/health-result', { replace: true }); // Navigate to HealthResult page
+      navigate('/survey/result', { replace: true }); // Navigate to HealthResult page
     }, 3000); // 3 seconds delay for demonstration
 
     return () => clearTimeout(timer); // Cleanup the timer
@@ -28,7 +28,7 @@ function LoadingReport() {
       <img
         src={loadingBeeImage}
         alt="로딩 중 캐릭터"
-        className="w-48 h-48 my-10"
+        className="max-w-full max-h-full my-10"
       />
     </div>
   );

@@ -4,6 +4,7 @@ import Header from '../../components/layout/Header';
 import userIcon from '../../assets/user.svg';
 import wibeeImage from './health-wibee/healthWibee.png';
 import { getSurveyResults } from '../../api/surveyApi';
+import LoadingReport from './LoadingReport';
 
 // Survey.jsx에서 가져온 아이콘 경로 생성 함수
 const getImageUrl = (name) => {
@@ -146,7 +147,7 @@ const HealthResult = () => {
   }, []);
 
   if (loading) {
-    return <div className="flex justify-center items-center h-full"><p className="text-lg text-gray-600">분석 결과를 불러오는 중...</p></div>;
+    return <LoadingReport />;
   }
 
   if (error) {
