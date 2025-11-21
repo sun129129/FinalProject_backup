@@ -156,8 +156,8 @@ const HealthResult = () => {
   const currentLifestyleData =
     lifestyleImprovementData[selectedInterest?.id] || lifestyleImprovementData.default;
 
-  const currentSupplementData =
-    recommendedSupplementsData[selectedInterest?.id] || recommendedSupplementsData.default;
+  // const currentSupplementData =
+  //   recommendedSupplementsData[selectedInterest?.id] || recommendedSupplementsData.default;
 
   return (
     <div className="flex flex-col h-screen bg-white">
