@@ -48,7 +48,29 @@ const AnswerButton = ({ type, onClick, disabled = false }) => {
   const baseStyle = 'w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-md active:shadow-lg active:scale-95';
   const disabledStyle = disabled ? 'opacity-50 cursor-not-allowed' : '';
   if (type === 'yes') return <button onClick={onClick} disabled={disabled} className="group"><div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-blue-400 group-hover:bg-blue-50`}><div className="w-16 h-16 rounded-full border-[6px] border-blue-400" /></div></button>;
-  if (type === 'maybe') return <button onClick={onClick} disabled={disabled} className="group"><div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-gray-400 group-hover:bg-gray-100`}><div className="w-0 h-0 border-l-[32px] border-l-transparent border-r-[32px] border-r-transparent border-b-[56px] border-b-gray-400" style={{ filter: 'drop-shadow(0 1px 1px rgb(0 0 0 / 0.1))' }} /></div></button>;
+  if (type === 'maybe') return (
+  <button onClick={onClick} disabled={disabled} className="group">
+    <div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-gray-400 group-hover:bg-gray-100`}>
+      <svg
+        width="56"
+        height="48"
+        viewBox="0 0 64 56"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="text-gray-400 -translate-y-[2px]"
+        style={{ filter: 'drop-shadow(0 1px 1px rgb(0 0 0 / 0.1))' }}
+      >
+        <path
+          d="M32 4 L4 52 H60 Z"
+          stroke="currentColor"
+          strokeWidth="6"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  </button>
+);
   if (type === 'no') return <button onClick={onClick} disabled={disabled} className="group"><div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-red-400 group-hover:bg-red-50 relative`}><div className="w-12 h-[6px] bg-red-400 rotate-45 absolute" /><div className="w-12 h-[6px] bg-red-400 -rotate-45 absolute" /></div></button>;
   return null;
 };
@@ -142,39 +164,56 @@ const Survey = () => {
     }
   };
 
+  // === [핵심] 답변 처리 및 자동 넘김 로직 ===
   const handleAnswer = (answerValue) => {
     const questionId = filteredQuestions[currentQuestionIndex].question_id;
     const newAnswers = { ...answers, [questionId]: answerValue };
     setAnswers(newAnswers);
+
+    // 답변 클릭 시 자동으로 다음 문항으로 이동 (마지막이면 제출)
     if (currentQuestionIndex < filteredQuestions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setTimeout(() => {
+        setCurrentQuestionIndex((prev) => prev + 1);
+      }, 150); // 사용자가 클릭했음을 인지할 찰나의 시간(0.15초) 후 이동
     } else {
       handleSubmitSurvey(newAnswers);
     }
   };
 
+  // === [핵심] 이전/다음 버튼 네비게이션 로직 ===
+  const handlePrev = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prev) => prev - 1);
+    } else {
+      // 첫 문항에서 이전을 누르면 키워드 선택으로 돌아갈지 여부 (선택사항)
+      const confirmBack = window.confirm("키워드 선택 화면으로 돌아가시겠습니까?");
+      if(confirmBack) setStep('keyword');
+    }
+  };
+
+  const handleNext = () => {
+    // 다음 문항으로 단순 이동 (답변을 안 했어도 이동 가능한지 여부는 기획에 따름. 현재는 이동 가능)
+    if (currentQuestionIndex < filteredQuestions.length - 1) {
+      setCurrentQuestionIndex((prev) => prev + 1);
+    }
+  };
+
   const handleSubmitSurvey = async (finalAnswers) => {
     setSubmitLoading(true);
-    setError(null);
     const formattedAnswers = Object.entries(finalAnswers).map(([qid, ans]) => ({
       question_id: parseInt(qid, 10),
       answer: ans,
     }));
     try {
       await submitSurveyAnswers(formattedAnswers);
-      alert('설문이 성공적으로 제출되었습니다. 결과를 분석합니다.');
       navigate('/survey/loading-report');
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || '제출에 실패했습니다.');
+      alert('제출 실패: ' + err.message);
       setSubmitLoading(false);
     }
   };
 
-  // Vite에서 src 내부의 이미지를 동적으로 가져오는 함수
-  const getImageUrl = (name) => {
-    // new URL(상대경로, import.meta.url) 패턴을 사용합니다.
-    return new URL(`./icons/${name}`, import.meta.url).href;
-  };
+  const getImageUrl = (name) => new URL(`./icons/${name}`, import.meta.url).href;
 
   if (!user) return null;
 
@@ -217,28 +256,94 @@ const Survey = () => {
     );
   }
 
+// === 질문 화면 렌더링 ===
   if (step === 'questions') {
     const currentQuestion = filteredQuestions[currentQuestionIndex];
-    if (!currentQuestion) {
-      return (
-        <div className="flex flex-col h-screen bg-white">
-          <Header title="오류" showBackButton={true} />
-          <div className="flex-grow flex flex-col items-center justify-center p-6 gap-4">
-            <p className="text-center text-red-500">질문을 불러오는 데 문제가 발생했습니다.</p>
-            <Button onClick={() => setStep('keyword')}>키워드 선택으로 돌아가기</Button>
-          </div>
-        </div>
-      );
-    }
+    const currentAnswer = answers[currentQuestion.question_id]; // 현재 문항에 저장된 답
+
+    // 네비게이션용 상태 변수
+    const isFirstQuestion = currentQuestionIndex === 0;
+    const isLastQuestion = currentQuestionIndex === filteredQuestions.length - 1;
+    
     return (
-      <div className="flex flex-col h-screen bg-white">
-        <Header title={currentQuestion.keyword_nm || '건강 설문'} showBackButton={true} rightAccessory={<button onClick={() => navigate('/mypage')}><img src={userIcon} alt="My Page" className="w-8 h-8" /></button>} />
-        <div className="w-full bg-gray-200 h-2"><div className="bg-blue-500 h-2 transition-all duration-300" style={{ width: `${((currentQuestionIndex + 1) / filteredQuestions.length) * 100}%` }} /></div>
-        <div className="flex-grow flex flex-col items-center justify-center p-8 text-center"><p className="text-2xl font-bold text-gray-800 leading-relaxed">{currentQuestion.question}</p></div>
-        <div className="p-6 sticky bottom-0 flex justify-around items-center bg-white">
-          <AnswerButton type="yes" onClick={() => handleAnswer(2)} disabled={submitLoading} />
-          <AnswerButton type="maybe" onClick={() => handleAnswer(1)} disabled={submitLoading} />
-          <AnswerButton type="no" onClick={() => handleAnswer(0)} disabled={submitLoading} />
+      <div className="flex flex-col h-screen bg-white relative">
+        <Header title={currentQuestion.keyword_nm || '건강 설문'} showBackButton={true} />
+        
+        {/* 진행 바 */}
+        <div className="w-full bg-gray-100 h-1">
+          <div 
+            className="bg-blue-500 h-1 transition-all duration-300 ease-out" 
+            style={{ width: `${((currentQuestionIndex + 1) / filteredQuestions.length) * 100}%` }} 
+          />
+        </div>
+
+        {/* 질문 영역 */}
+        <div className="flex-grow flex flex-col pt-20 px-8 items-center">
+          <p className="text-2xl font-bold text-gray-800 text-center leading-normal break-keep">
+            {currentQuestion.question}
+          </p>
+        </div>
+
+        {/* 답변 버튼 영역 */}
+        <div className="absolute top-2/3 left-0 right-0 -translate-y-1/6 flex justify-center items-center gap-8 px-4">
+           {/* 2: Yes (파란 원) */}
+          <AnswerButton 
+            type="yes" 
+            onClick={() => handleAnswer(2)} 
+            disabled={submitLoading} 
+            isSelected={currentAnswer === 2}
+          />
+           {/* 1: Maybe (회색 세모) */}
+          <AnswerButton 
+            type="maybe" 
+            onClick={() => handleAnswer(1)} 
+            disabled={submitLoading} 
+            isSelected={currentAnswer === 1}
+          />
+           {/* 0: No (빨간 X) */}
+          <AnswerButton 
+            type="no" 
+            onClick={() => handleAnswer(0)} 
+            disabled={submitLoading} 
+            isSelected={currentAnswer === 0}
+          />
+        </div>
+
+        {/* 하단 네비게이션 버튼 영역 */}
+        <div className="p-6 pb-10 sticky bottom-0 flex gap-4 bg-white">
+            {isFirstQuestion ? (
+                // 1. 첫 문항: [다음] 버튼만 꽉 차게
+                <button
+                    onClick={handleNext}
+                    className="w-full py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                    다음 문항 <span>&gt;</span>
+                </button>
+            ) : isLastQuestion ? (
+                // 2. 마지막 문항: [이전] 버튼만 꽉 차게
+                <button
+                    onClick={handlePrev}
+                    className="w-full py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                    <span>&lt;</span> 이전 문항
+                </button>
+            ) : (
+                // 3. 중간 문항: [이전] [다음] 반반
+                <>
+                    <button
+                        onClick={handlePrev}
+                        className="flex-1 py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        <span>&lt;</span> 이전 문항
+                    </button>
+                    <button
+                        onClick={handleNext}
+                        className="flex-1 py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                        다음 문항 <span>&gt;</span>
+                    </button>
+                </>
+            )}
         </div>
       </div>
     );
