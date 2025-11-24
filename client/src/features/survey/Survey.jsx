@@ -44,34 +44,62 @@ const DUMMY_INTERESTS = [
 ];
 
 // O/△/X 아이콘 컴포넌트
-const AnswerButton = ({ type, onClick, disabled = false }) => {
+const AnswerButton = ({ type, onClick, disabled = false, isSelected }) => {
   const baseStyle = 'w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-md active:shadow-lg active:scale-95';
   const disabledStyle = disabled ? 'opacity-50 cursor-not-allowed' : '';
-  if (type === 'yes') return <button onClick={onClick} disabled={disabled} className="group"><div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-blue-400 group-hover:bg-blue-50`}><div className="w-16 h-16 rounded-full border-[6px] border-blue-400" /></div></button>;
-  if (type === 'maybe') return (
-  <button onClick={onClick} disabled={disabled} className="group">
-    <div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-gray-400 group-hover:bg-gray-100`}>
-      <svg
-        width="56"
-        height="48"
-        viewBox="0 0 64 56"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="text-gray-400 -translate-y-[2px]"
-        style={{ filter: 'drop-shadow(0 1px 1px rgb(0 0 0 / 0.1))' }}
-      >
-        <path
-          d="M32 4 L4 52 H60 Z"
-          stroke="currentColor"
-          strokeWidth="6"
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-      </svg>
-    </div>
-  </button>
-);
-  if (type === 'no') return <button onClick={onClick} disabled={disabled} className="group"><div className={`${baseStyle} ${disabledStyle} bg-white border-4 border-red-400 group-hover:bg-red-50 relative`}><div className="w-12 h-[6px] bg-red-400 rotate-45 absolute" /><div className="w-12 h-[6px] bg-red-400 -rotate-45 absolute" /></div></button>;
+
+  if (type === 'yes') {
+    const selectedStyle = isSelected ? 'bg-blue-400 border-blue-500' : 'bg-white border-blue-400 group-hover:bg-blue-50';
+    const innerSelectedStyle = isSelected ? 'border-white' : 'border-blue-400';
+    return (
+      <button onClick={onClick} disabled={disabled} className="group">
+        <div className={`${baseStyle} ${disabledStyle} ${selectedStyle}`}>
+          <div className={`w-16 h-16 rounded-full border-[6px] ${innerSelectedStyle}`} />
+        </div>
+      </button>
+    );
+  }
+
+  if (type === 'maybe') {
+    const selectedStyle = isSelected ? 'bg-gray-400 border-gray-500' : 'bg-white border-gray-400 group-hover:bg-gray-100';
+    const innerSelectedStyle = isSelected ? 'text-white' : 'text-gray-400';
+    return (
+      <button onClick={onClick} disabled={disabled} className="group">
+        <div className={`${baseStyle} ${disabledStyle} ${selectedStyle}`}>
+          <svg
+            width="56"
+            height="48"
+            viewBox="0 0 64 56"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className={`${innerSelectedStyle} -translate-y-[2px]`}
+            style={{ filter: 'drop-shadow(0 1px 1px rgb(0 0 0 / 0.1))' }}
+          >
+            <path
+              d="M32 4 L4 52 H60 Z"
+              stroke="currentColor"
+              strokeWidth="6"
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      </button>
+    );
+  }
+
+  if (type === 'no') {
+    const selectedStyle = isSelected ? 'bg-red-400 border-red-500' : 'bg-white border-red-400 group-hover:bg-red-50';
+    const innerSelectedStyle = isSelected ? 'bg-white' : 'bg-red-400';
+    return (
+      <button onClick={onClick} disabled={disabled} className="group">
+        <div className={`${baseStyle} ${disabledStyle} ${selectedStyle} relative`}>
+          <div className={`w-12 h-[6px] ${innerSelectedStyle} rotate-45 absolute`} />
+          <div className={`w-12 h-[6px] ${innerSelectedStyle} -rotate-45 absolute`} />
+        </div>
+      </button>
+    );
+  }
   return null;
 };
 
@@ -170,13 +198,11 @@ const Survey = () => {
     const newAnswers = { ...answers, [questionId]: answerValue };
     setAnswers(newAnswers);
 
-    // 답변 클릭 시 자동으로 다음 문항으로 이동 (마지막이면 제출)
+    // 답변 클릭 시 자동으로 다음 문항으로 이동
     if (currentQuestionIndex < filteredQuestions.length - 1) {
       setTimeout(() => {
         setCurrentQuestionIndex((prev) => prev + 1);
       }, 150); // 사용자가 클릭했음을 인지할 찰나의 시간(0.15초) 후 이동
-    } else {
-      handleSubmitSurvey(newAnswers);
     }
   };
 
@@ -285,7 +311,7 @@ const Survey = () => {
         </div>
 
         {/* 답변 버튼 영역 */}
-        <div className="absolute top-2/3 left-0 right-0 -translate-y-1/6 flex justify-center items-center gap-8 px-4">
+        <div className="absolute top-1/2 left-0 right-0 -translate-y-1/6 flex justify-center items-center gap-8 px-4">
            {/* 2: Yes (파란 원) */}
           <AnswerButton 
             type="yes" 
@@ -310,40 +336,51 @@ const Survey = () => {
         </div>
 
         {/* 하단 네비게이션 버튼 영역 */}
-        <div className="p-6 pb-10 sticky bottom-0 flex gap-4 bg-white">
-            {isFirstQuestion ? (
-                // 1. 첫 문항: [다음] 버튼만 꽉 차게
-                <button
-                    onClick={handleNext}
-                    className="w-full py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                >
-                    다음 문항 <span>&gt;</span>
-                </button>
-            ) : isLastQuestion ? (
-                // 2. 마지막 문항: [이전] 버튼만 꽉 차게
-                <button
-                    onClick={handlePrev}
-                    className="w-full py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                >
-                    <span>&lt;</span> 이전 문항
-                </button>
-            ) : (
-                // 3. 중간 문항: [이전] [다음] 반반
-                <>
-                    <button
-                        onClick={handlePrev}
-                        className="flex-1 py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <span>&lt;</span> 이전 문항
-                    </button>
-                    <button
-                        onClick={handleNext}
-                        className="flex-1 py-4 bg-blue-500 text-white rounded-xl text-lg font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                        다음 문항 <span>&gt;</span>
-                    </button>
-                </>
+        <div className="p-6 pb-10 sticky bottom-0 flex flex-col gap-4 bg-white border-t">
+          {/* Progress Text */}
+          <p className="text-center text-sm text-gray-600 font-semibold">
+            답변 현황: {Object.keys(answers).length} / {filteredQuestions.length}
+          </p>
+
+          {/* Submit Button */}
+          <Button
+            variant="form"
+            onClick={() => handleSubmitSurvey(answers)}
+            disabled={Object.keys(answers).length !== filteredQuestions.length || submitLoading}
+          >
+            {submitLoading ? '제출 중...' : '결과 보기'}
+          </Button>
+
+          {/* Prev/Next Navigation */}
+          <div className="flex gap-4">
+            {/* Previous Button */}
+            {!isFirstQuestion && (
+              <button
+                onClick={handlePrev}
+                className={`flex-1 py-4 rounded-lg shadow-md transition-colors duration-150 ease-in-out font-bold text-lg flex items-center justify-center gap-2
+                  ${isLastQuestion
+                    ? 'bg-[rgb(80,103,199)] text-white hover:bg-blue-700' // Form button style if it's the only one (last question)
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300' // Default style
+                  }`}
+              >
+                <span>&lt;</span> 이전
+              </button>
             )}
+
+            {/* Next Button */}
+            {!isLastQuestion && (
+              <button
+                onClick={handleNext}
+                className={`flex-1 py-4 rounded-lg shadow-md transition-colors duration-150 ease-in-out font-bold text-lg flex items-center justify-center gap-2
+                  ${isFirstQuestion
+                    ? 'bg-[rgb(80,103,199)] text-white hover:bg-blue-700' // Form button style if it's the only one (first question)
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300' // Default style
+                  }`}
+              >
+                다음 <span>&gt;</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
