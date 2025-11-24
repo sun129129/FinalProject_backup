@@ -29,6 +29,7 @@ import MyPage from '../features/mypage/MyPage.jsx';
 import ChangePassword from '../features/mypage/ChangePassword.jsx';
 import DeleteAccount from '../features/mypage/DeleteAccounts.jsx';
 import VerifyCurrentPassword from '../features/mypage/VerifyCurrentPassword.jsx';
+import RecommendedSupplements from '../features/survey/RecommendedSupplements';
 import ProtectedRoute from './ProtectedRoute';
 
 // 2. 주소(path)와 컴포넌트(element)를 짝지어주기
@@ -52,6 +53,7 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/search" element={<SearchScreen />} />
         <Route path="/survey" element={<Survey />} />
+        <Route path="/recommended-supplements" element={<RecommendedSupplements />} />
         <Route path="/survey/loading-report" element={<LoadingReport />} />
         <Route path="/survey/result" element={<HealthResult />} />
         <Route path="/intake-ocr" element={<SupplementOCR />} /> {/* OCR 페이지 라우트 추가 */}
