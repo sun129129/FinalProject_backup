@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Any, Literal
 
 # --- Product and Intake (제품 및 섭취 기록) 스키마 ---
 
@@ -26,3 +26,19 @@ class ProductSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- Natural Language Search Schemas ---
+
+class NaturalSearchRequest(BaseModel):
+    """
+    자연어 검색 요청 스키마
+    """
+    query: str
+
+class NaturalSearchResponse(BaseModel):
+    """
+    자연어 검색 응답 스키마
+    """
+    search_type: Literal["recommendation", "information", "unknown"]
+    data: Any
+    message: Optional[str] = None

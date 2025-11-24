@@ -18,6 +18,7 @@ import ResetPassword from '../features/auth/ResetPassword';
 // Dashboard 및 Survey
 import Dashboard from '../features/dashboard/Dashboard';
 import Survey from '../features/survey/Survey';
+import SearchScreen from '../features/search/SearchScreen.jsx';
 import LoadingReport from '../features/survey/LoadingReport';
 import HealthResult from '../features/survey/HealthResult';
 import SupplementOCR from '../features/intake/SupplementOCR'; // OCR 컴포넌트 추가
@@ -49,6 +50,7 @@ const AppRoutes = () => {
             로그인 여부를 체크하는 로직이 추가되어야 합니다. */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/search" element={<SearchScreen />} />
         <Route path="/survey" element={<Survey />} />
         <Route path="/survey/loading-report" element={<LoadingReport />} />
         <Route path="/survey/result" element={<HealthResult />} />
