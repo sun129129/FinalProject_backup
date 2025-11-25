@@ -3,11 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-# from app.core.database import engine, Base
+from app.core.database import engine, Base
 
-# # 데이터베이스 테이블을 생성합니다.
-# # Alembic과 같은 마이그레이션 도구를 사용하는 경우, 아래 라인은 주석 처리하거나 삭제하는 것이 좋습니다.
-# Base.metadata.create_all(bind=engine)
+# 데이터베이스 테이블을 생성합니다.
+# Alembic과 같은 마이그레이션 도구를 사용하는 경우, 아래 라인은 주석 처리하거나 삭제하는 것이 좋습니다.
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
